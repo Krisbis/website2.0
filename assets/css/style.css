@@ -1,0 +1,270 @@
+:root{
+  --bg:#071019;
+  --panel:#0b1220;
+  --muted:#9aa7b2;
+  --accent:#eef1f3; /* soft white-ish accent */
+  --glass: rgba(255,255,255,0.03);
+}
+
+/* Local painter font (placed in assets/fonts/painter-font.ttf) */
+@font-face{
+  font-family: 'Painter';
+  /* try local names first, then fall back to the TTF in the repo */
+  src: local('Painter'), local('Painter-LxXg'), url('../fonts/painter-font/Painter-LxXg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: #000; /* totally black */
+  color:#dbe7ee;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.hero{min-height:85vh; display:flex; align-items:center; margin-top:12px}
+.accent{color:var(--accent);font-family:'Share Tech Mono', monospace}
+
+.terminal-card{border-radius:12px; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+.terminal{font-family:'JetBrains Mono', monospace; font-size:0.95rem; min-height:180px;}
+.output{max-height:240px; overflow:auto; padding:6px 8px;}
+.output .line{white-space:pre-wrap; margin:2px 0; color:#cfd8e3}
+.prompt-row{display:flex; gap:8px; align-items:center; padding:6px 8px; border-top:1px solid rgba(255,255,255,0.02);}
+.prompt{color:var(--muted); min-width:120px; font-family:'JetBrains Mono', monospace}
+.cmd-input{flex:1; background:transparent; border:0; outline:0; color:var(--accent); caret-color:var(--accent); font-family:'JetBrains Mono', monospace}
+.cmd-input::placeholder{color:rgba(238,241,243,0.35)}
+
+/* small focus ring */
+.cmd-input:focus{box-shadow:0 0 0 2px rgba(238,241,243,0.08);}
+
+.blinker{display:inline-block; width:8px; height:14px; background:var(--accent); margin-left:4px; vertical-align:middle; animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* other page adjustments */
+h1,h2,h3{color:#e6f7ff}
+.card{background:transparent}
+
+/* navbar ribbon style on large screens */
+#site-navbar{
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.navbar-brand.autograph{font-family: 'Share Tech Mono', monospace; letter-spacing:1px}
+
+/* make nav links look ribbon-like on large screens */
+@media (min-width:992px){
+  #site-navbar .navbar-nav .nav-link{padding:1rem 1.25rem; border-radius:6px}
+  #site-navbar .navbar-nav .nav-link:hover{background:rgba(255,255,255,0.02)}
+}
+
+/* Ensure nav looks correct even if Bootstrap isn't loaded immediately */
+#site-navbar .navbar-nav{list-style:none; padding-left:0; margin:0;}
+#site-navbar .navbar-nav .nav-item{display:block}
+#site-navbar .navbar-nav .nav-link{ text-decoration:none; color:var(--muted); }
+#site-navbar .navbar-nav .nav-link:visited{ color:var(--muted); }
+#site-navbar .navbar-nav{display:flex; flex-direction:column; gap:6px}
+
+@media(min-width:992px){
+  #site-navbar .navbar-nav{flex-direction:row; gap:0}
+}
+
+/* Hamburger menu hover glow on small screens */
+@media (max-width:991px){
+  /* subtle white text glow on hover for collapsed (hamburger) menu items */
+  #site-navbar .navbar-nav .nav-link{
+    transition: text-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+    border-radius:6px;
+    color:var(--muted);
+  }
+  #site-navbar .navbar-nav .nav-link:hover{
+    /* only text glows (no box highlight) */
+    text-shadow: 0 0 8px rgba(255,255,255,0.95), 0 0 18px rgba(255,255,255,0.22);
+    color: #fff;
+    transform: translateY(-1px);
+    text-decoration: none;
+  }
+}
+
+/* Terminal wrapper: responsive and ~75% of viewport width */
+.terminal-wrapper{
+  width:75vw;           /* ~75% of the window */
+  max-width:1200px;     /* reasonable cap on very wide screens */
+  min-width:320px;      /* avoid being too small on tiny screens */
+}
+
+/* Ensure terminal card stretches to wrapper width */
+.terminal-wrapper .terminal-card{ width:100%; }
+
+/* Make output area responsive */
+.terminal{ width:100%; box-sizing:border-box }
+.output{ max-height:60vh; }
+
+/* Glitch effect for brand */
+/* Brand: simple, accessible styling (glitch removed) */
+.autograph{
+  display:inline-block;
+  font-family: 'Painter', 'JetBrains Mono', 'Share Tech Mono', monospace;
+  color:var(--accent);
+  font-weight:600;
+  letter-spacing:0.6px;
+}
+
+/* explicit class to force Painter font on the brand */
+.autograph-painter{
+  font-family: 'Painter', 'JetBrains Mono', 'Share Tech Mono', monospace !important;
+  font-weight:normal;
+  font-size:2.65rem;
+  line-height:1;
+  display:inline-block;
+}
+
+/* per-character container used for safe, non-shifting mutations */
+.autograph{ white-space:nowrap; }
+.autograph-char{
+  display:inline-block;
+  text-align:center;
+  vertical-align:middle;
+}
+
+
+/* responsive tweaks */
+@media (max-width:767px){
+  .prompt{min-width:80px}
+}
+
+.text-muted{color:var(--muted) !important}
+
+/*
+Copyright (c) 2026 by Robin (https://codepen.io/lessthanthree/pen/LENwGyZ)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* Project cards styles (converted from provided snippet) */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:3rem;
+}
+
+.previewCard{
+  --gutter:1.5rem;
+  --brightness:0.85;
+  --saturation:1.5;
+  --frostRadius:1.5rem;
+  padding:var(--gutter);
+  border-radius:var(--gutter);
+  aspect-ratio:4/3;
+  width:100%;
+  max-width:32rem;
+  display:grid;
+  justify-content:start;
+  align-content:end;
+  position:relative;
+  background:#333;
+  overflow:hidden;
+  cursor:pointer;
+  transition:transform 250ms ease-in-out;
+}
+
+.previewCard img{
+  transition:transform 500ms ease-in-out;
+}
+
+.previewCard svg{
+  transition:transform 250ms ease-in-out;
+}
+
+.previewCard:hover{
+  transform:scale(1.05);
+}
+.previewCard:hover img{
+  transform:scale(1.1);
+}
+.previewCard:hover svg{
+  transform:scale(1.5);
+}
+
+.previewCard::after{
+  content:"";
+  position:absolute;
+  inset:-0.5rem;
+  z-index:1;
+  pointer-events:none;
+  backdrop-filter: blur(var(--frostRadius)) saturate(var(--saturation)) brightness(var(--brightness));
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.5) 55%, black 75%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.5) 55%, black 75%);
+}
+
+.backdrop{
+  position:absolute;
+  object-fit:cover;
+  pointer-events:none;
+  user-select:none;
+  width:100%;
+  height:100%;
+}
+
+.content{
+  position:relative;
+  z-index:2;
+  display:grid;
+  bottom:0;
+  justify-content:start;
+  align-content:end;
+  gap:0.5rem;
+}
+
+.title{
+  font-size:1.7rem;
+}
+
+.category{
+  text-transform:uppercase;
+  font-weight:600;
+  letter-spacing:0.1rem;
+  opacity:0.45;
+}
+
+.description{
+  font-size:1.3rem;
+  line-height:1.35;
+  display:grid;
+  grid-template-columns:1fr auto;
+  place-content:start;
+  gap:0.5rem;
+}
+.description p{
+  margin:0;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.description span{
+  transform:translateY(-0.1rem);
+  font-size:4rem;
+  display:grid;
+  place-items:center;
+  width:2rem;
+  height:2rem;
+}
+/* End of Copyrighted snippet */
