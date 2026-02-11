@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
+    <!-- Background video (place your file in the 'videos' folder and name it e.g. background.mp4) -->
+    <div class="bg-video-wrapper" aria-hidden="true">
+        <video id="bgVideo" class="bg-video" autoplay muted loop playsinline preload="auto">
+            <source src="assets/videos/background.mp4" type="video/mp4">
+            <!-- fallback: silent poster or image -->
+        </video>
+        <!-- translucent overlay whose opacity can be adjusted with the control -->
+        <div id="bgOverlay" class="bg-overlay"></div>
+    </div>
     <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4" aria-label="Main navigation">
         <div class="container-fluid">
             <a class="navbar-brand autograph autograph-painter p-0" href="index.html">xorxorplain</a>
@@ -68,6 +77,25 @@
     <!-- Terminal logic -->
     <script src="assets/js/terminal.js"></script>
     <script src="assets/js/title-glitch.js"></script>
+
+        <!-- Background overlay controls (small, non-intrusive) -->
+        <div id="bgControls" class="bg-controls" aria-hidden="false" title="Background overlay opacity">
+            <label for="bgOpacityRange" class="visually-hidden">Background overlay opacity</label>
+            <input id="bgOpacityRange" type="range" min="0" max="1" step="0.01" value="0.35" />
+        </div>
+
+        <script>
+            // wire background opacity control
+            (function(){
+                const range = document.getElementById('bgOpacityRange');
+                const overlay = document.getElementById('bgOverlay');
+                if(!range || !overlay) return;
+                // initialize CSS variable
+                const setAlpha = v => document.documentElement.style.setProperty('--bg-overlay-alpha', v);
+                setAlpha(range.value);
+                range.addEventListener('input', (e)=>{ setAlpha(e.target.value); });
+            })();
+        </script>
 
     <script>
         // set current year

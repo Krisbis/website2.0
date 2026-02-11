@@ -4,6 +4,8 @@
   --muted:#9aa7b2;
   --accent:#eef1f3; /* soft white-ish accent */
   --glass: rgba(255,255,255,0.03);
+  /* background overlay alpha (0 = transparent, 1 = opaque) */
+  --bg-overlay-alpha: 0.35;
 }
 
 /* Local painter font (placed in assets/fonts/painter-font.ttf) */
@@ -24,6 +26,35 @@ body{
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 }
+
+/* Background video wrapper (fixed behind page content) */
+.bg-video-wrapper{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  z-index:-1; /* behind everything */
+  pointer-events:none; /* don't intercept clicks */
+}
+.bg-video{
+  position:absolute;
+  left:50%; top:50%;
+  width:auto; height:120%;
+  min-width:100%; min-height:100%;
+  transform:translate(-50%,-50%);
+  object-fit:cover;
+  filter:brightness(0.95) saturate(1.05);
+}
+.bg-overlay{
+  position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,var(--bg-overlay-alpha)), rgba(0,0,0,var(--bg-overlay-alpha)) );
+  pointer-events:none; z-index:1;
+}
+
+/* Small control to adjust overlay opacity (keeps low visual weight) */
+.bg-controls{
+  position:fixed; right:12px; top:72px; z-index:9999; background:rgba(0,0,0,0.35); padding:6px 8px; border-radius:6px; backdrop-filter: blur(6px);
+}
+.bg-controls input[type=range]{ width:120px; }
+
 
 .hero{min-height:85vh; display:flex; align-items:center; margin-top:12px}
 .accent{color:var(--accent);font-family:'Share Tech Mono', monospace}
@@ -50,14 +81,6 @@ body{
 .term-exec{ color:#7fe77f } /* green for executables */
 .term-error{ color:#ff6b6b; font-weight:600 } /* red for errors */
 .term-meta{ color:#f7d070 } /* yellow-ish meta fields */
-
-/* ls -l column alignment */
-.output .ls-line{ font-family:'JetBrains Mono', monospace; white-space:nowrap }
-.output .ls-line .ls-mode{ display:inline-block; width:110px }
-.output .ls-line .ls-owner{ display:inline-block; width:70px }
-.output .ls-line .ls-size{ display:inline-block; width:30px; text-align:left }
-.output .ls-line .ls-date{ display:inline-block; width:170px }
-.output .ls-line .ls-name{ display:inline-block; min-width:1230px }
 
 /* other page adjustments */
 h1,h2,h3{color:#e6f7ff}
@@ -150,6 +173,24 @@ h1,h2,h3{color:#e6f7ff}
   .prompt{min-width:80px}
 }
 
+/* Mobile-specific adjustments */
+@media (max-width:767px){
+  /* make terminal area narrower and centered on small phones */
+  .terminal-wrapper{ width:92vw; min-width:0; }
+  .terminal-wrapper .terminal-card{ margin-left:auto; margin-right:auto; }
+  /* reduce terminal font size ~20% for better fit */
+  .terminal{ font-size:0.76rem; }
+  .output{ max-height:50vh; }
+  /* make project cards two per row on small screens, and 1 per row on extra-small */
+  .cards{ grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+}
+
+@media (max-width:420px){
+  .cards{ grid-template-columns:repeat(1,1fr); }
+  /* slightly tighter padding on the preview cards for tiny screens */
+  .previewCard{ padding:1rem; }
+}
+
 .text-muted{color:var(--muted) !important}
 
 /*
@@ -217,6 +258,19 @@ SOFTWARE.
 }
 .previewCard:hover svg{
   transform:scale(1.5);
+}
+
+/* Ensure responsive override placed after default .cards definition so it takes precedence */
+@media (max-width:767px){
+  .cards{ grid-template-columns:repeat(2,1fr) !important; gap:1.25rem !important; }
+}
+@media (max-width:420px){
+  .cards{ grid-template-columns:repeat(1,1fr) !important; }
+}
+
+/* Reduce brand size slightly on smaller screens so the hamburger fits */
+@media (max-width:991px){
+  .autograph-painter{ font-size: calc(2.65rem * 0.85); }
 }
 
 .previewCard::after{
