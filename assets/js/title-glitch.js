@@ -70,7 +70,7 @@
         const type = Math.random() < 0.5 ? 'hex' : 'bin';
         // how many chars to shift at a time (1..3)
         const changeCount = 1 + Math.floor(Math.random()*3);
-        const stepDelay = Math.random() * 100;
+        const stepDelay = Math.random() * 80;
 
   // start position (introduce mutated chars gradually from the rightmost char)
   const start = Math.max(0, len - 1);
@@ -97,8 +97,8 @@
           carry = [newFirst, ...carry].slice(0, changeCount);
           await sleep(stepDelay + Math.floor(Math.random()*80));
         }
-        // 20% chance to bounce back (left-to-right) before cleanup
-        if(!el._glitchCancel && Math.random() < 0.2){
+        // 33% chance to bounce back (left-to-right) before cleanup
+        if(!el._glitchCancel && Math.random() < 0.33){
           // left-to-right scan: initialize carry (fresh) but shift in opposite direction
           carry = Array.from({length: changeCount}, ()=> randomString(1, type));
           // end position should allow gradual introduction up to the rightmost char

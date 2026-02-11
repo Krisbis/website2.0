@@ -138,11 +138,11 @@
       if(fs[target].type !== 'dir') return [`cd: ${name}: Not a directory`];
       // redirect for known directories
       if(target.toLowerCase() === 'projects'){
-        window.location.href = 'projects.html';
+        window.location.href = '/projects/projects.html';
         return ['opening projects...'];
       }
       if(target.toLowerCase() === 'about'){
-        window.location.href = 'about.html';
+        window.location.href = '/about.html';
         return ['opening about...'];
       }
       if(target.toLowerCase() === 'blog'){
@@ -207,7 +207,51 @@
   function appendLine(text, cls){
     const div = document.createElement('div');
     div.className = 'line' + (cls ? ' '+cls : '');
-    div.textContent = text;
+    // if caller requested raw (no coloring), render as plain text
+    if(cls && cls.split && cls.split(' ').includes('raw')){
+      div.textContent = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+      return div;
+    }
+    // escape html
+    function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    // helper to wrap directory names (ending with /)
+    let html = esc(text);
+    // special handling for the echoed user command prompt
+    if(cls && cls.split(' ').includes('user-cmd')){
+      // try to split prompt from the command
+      const parts = text.split(/\s/, 1);
+      // detect common prompt prefix 'user@neon:~$ '
+      const promptMatch = text.match(/^(user@[^:]+:[^$]+\$\s+)/);
+      if(promptMatch){
+        const prompt = esc(promptMatch[1]);
+        const rest = esc(text.slice(promptMatch[1].length));
+        html = `<span class="ps1">${prompt}</span><span class="cmd-text">${rest}</span>`;
+      } else {
+        html = `<span class="ps1">${esc('user@neon:~$ ')}</span><span class="cmd-text">${esc(text)}</span>`;
+      }
+      div.innerHTML = html;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+      return div;
+    }
+    // color common error messages
+    const errPatterns = [/permission denied/i, /no such file/i, /missing operand/i, /is a directory/i, /command not found/i];
+    if(errPatterns.some(rx=> rx.test(text))){
+      div.innerHTML = `<span class="term-error">${html}</span>`;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+      return div;
+    }
+    // color directory-like entries (ending with /)
+    html = html.replace(/(\b[\w\-\.]+\/?)/g, function(m){
+      if(/\/$/.test(m)) return `<span class="term-dir">${m}</span>`;
+      return m;
+    });
+    // color owner/meta fields if present (simple heuristic for long listing)
+    html = html.replace(/^(\S+\s+\d+\s+)(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/,'$1<span class="term-meta">$2</span> <span class="term-meta">$3</span> <span class="term-meta">$4</span> $5');
+    div.innerHTML = html;
     output.appendChild(div);
     output.scrollTop = output.scrollHeight;
     return div;
@@ -246,15 +290,17 @@
     if(fn){
       const res = fn(args);
       if(Array.isArray(res)){
-        // animate first line, print the rest
-        if(res.length>0) typeText(res[0], ()=>{
-          for(let i=1;i<res.length;i++) appendLine(res[i]);
-        });
+        // if this is 'cat' output, render raw (no coloring) so ASCII art and file content remains intact
+        if(cmd === 'cat'){
+          res.forEach(line => appendLine(line, 'raw'));
+        } else {
+          res.forEach(line => appendLine(line));
+        }
       } else if(typeof res === 'string'){
-        typeText(res);
+        appendLine(res);
       }
     } else {
-      typeText(cmd + ': command not found');
+      appendLine(cmd + ': command not found');
     }
   }
 

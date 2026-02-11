@@ -43,6 +43,22 @@ body{
 .blinker{display:inline-block; width:8px; height:14px; background:var(--accent); margin-left:4px; vertical-align:middle; animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 
+/* Terminal color tokens (bash-like) */
+.ps1{ color:#69d84f; font-weight:600 } /* green prompt */
+.cmd-text{ color:var(--accent) }
+.term-dir{ color:#4da6ff } /* blue for directories */
+.term-exec{ color:#7fe77f } /* green for executables */
+.term-error{ color:#ff6b6b; font-weight:600 } /* red for errors */
+.term-meta{ color:#f7d070 } /* yellow-ish meta fields */
+
+/* ls -l column alignment */
+.output .ls-line{ font-family:'JetBrains Mono', monospace; white-space:nowrap }
+.output .ls-line .ls-mode{ display:inline-block; width:110px }
+.output .ls-line .ls-owner{ display:inline-block; width:70px }
+.output .ls-line .ls-size{ display:inline-block; width:30px; text-align:left }
+.output .ls-line .ls-date{ display:inline-block; width:170px }
+.output .ls-line .ls-name{ display:inline-block; min-width:1230px }
+
 /* other page adjustments */
 h1,h2,h3{color:#e6f7ff}
 .card{background:transparent}
