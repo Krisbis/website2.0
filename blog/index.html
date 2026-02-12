@@ -9,9 +9,15 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
+  <!-- Background video and glassy overlay -->
+  <div class="bg-video-wrapper">
+    <video class="bg-video" src="../assets/videos/blog_background.mp4" autoplay loop muted playsinline></video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
   <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
     <div class="container-fluid">
-  <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -26,7 +32,7 @@
     </div>
   </nav>
 
-  <main class="container py-5 text-light">
+  <main class="container py-5 text-light glass-content">
     <h1 class="h3">Blog</h1>
     <p class="text-muted">Your blog lives here. Add posts inside this folder as separate HTML or use a generator.</p>
   </main>

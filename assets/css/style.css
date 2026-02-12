@@ -1,3 +1,39 @@
+/* Projects page background video and glassy overlay */
+.bg-video-wrapper{
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  z-index:-1;
+  pointer-events:none;
+}
+.bg-video{
+  position:absolute;
+  left:50%; top:50%;
+  width:auto; height:120%;
+  min-width:100%; min-height:100%;
+  transform:translate(-50%,-50%);
+  object-fit:cover;
+  filter:brightness(0.95) saturate(1.05);
+}
+.bg-overlay-glass{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+  background:rgba(20,24,32,0.22);
+  backdrop-filter: blur(18px) saturate(1.2);
+}
+.glass-content{
+  background:rgba(20,24,32,0.32);
+  border-radius:18px;
+  box-shadow:0 4px 32px 0 rgba(0,0,0,0.12);
+  backdrop-filter: blur(12px) saturate(1.1);
+  padding:2.5rem 2.5vw 2.5rem 2.5vw;
+  margin-top:2.5rem;
+}
+@media (max-width:767px){
+  .glass-content{ padding:1.2rem 2vw 1.2rem 2vw; margin-top:1.2rem; }
+}
 :root{
   --bg:#071019;
   --panel:#0b1220;

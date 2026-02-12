@@ -70,7 +70,7 @@
         const type = Math.random() < 0.5 ? 'hex' : 'bin';
         // how many chars to shift at a time (1..3)
         const changeCount = 1 + Math.floor(Math.random()*3);
-        const stepDelay = Math.random() * 80;
+        const stepDelay = Math.random() * 50;
 
   // start position (introduce mutated chars gradually from the rightmost char)
   const start = Math.max(0, len - 1);
