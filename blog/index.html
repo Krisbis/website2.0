@@ -9,7 +9,16 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
   <!-- Background video and glassy overlay -->
+  <!-- BG-video created by: tommyvideo - https://pixabay.com/videos/space-galaxy-abstract-lights-5200/ -->
   <div class="bg-video-wrapper">
     <video class="bg-video" src="../assets/videos/blog_background.mp4" autoplay loop muted playsinline></video>
     <div class="bg-overlay-glass"></div>
@@ -39,5 +48,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
 </body>
 </html>

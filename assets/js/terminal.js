@@ -29,6 +29,7 @@
     // sample files (you can edit these)
     'readme.txt': { type: 'file', content: 'Welcome to xorxorplain.\nUse `help` to see commands.', size: 48, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     '.secret': { type: 'file', content: 'top-secret', size: 10, mtime: Date.now() - 1000*60*60, owner: 'xorxor' },
+    '.key': { type: 'file', content: 'XorAsOTPreliesTo=1)TrulyRandomKey2)KeyLength=MessageLength3)KeyIsUsedOnlyOnce.ThisKeyFailsPointNo.1&2....DoesThisKeyFindItsLock?Hint__:WebsitesGreetsYouWithWhatDevelopedElementWhenYourConnectionIsSlow', size: 128, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     'cat.txt': {
       type: 'file',
       content: "  /\\_/\\\n ( o.o )\n  > ^ <\n",

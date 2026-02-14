@@ -14,15 +14,18 @@
 
   els.forEach(el => {
     const original = el.textContent || '';
-    // we want a static prefix "> " that never mutates and should be present
-    const PREFIX = '> ';
+    // static prefix and suffix
+    const PREFIX = '';
+    const SUFFIX = ' :)';
     // split into per-character spans (if not already done)
     let spans = Array.from(el.querySelectorAll('.autograph-char'));
     let prefixSpan = el.querySelector('.autograph-prefix');
+    let suffixSpan = el.querySelector('.autograph-suffix');
     if(spans.length === 0){
-      // determine display text without the prefix if it's already present
-      const hasPrefix = original.startsWith(PREFIX);
-      const display = hasPrefix ? original.slice(PREFIX.length) : original;
+      // determine display text without the prefix/suffix if already present
+      let display = original;
+      if(display.startsWith(PREFIX)) display = display.slice(PREFIX.length);
+      if(display.endsWith(SUFFIX)) display = display.slice(0, -SUFFIX.length);
       el.textContent = '';
       // create static prefix span
       prefixSpan = document.createElement('span');
@@ -37,16 +40,21 @@
         s.textContent = ch;
         el.appendChild(s);
       });
+      // create static suffix span
+      suffixSpan = document.createElement('span');
+      suffixSpan.className = 'autograph-suffix';
+      suffixSpan.textContent = SUFFIX;
+      el.appendChild(suffixSpan);
       spans = Array.from(el.querySelectorAll('.autograph-char'));
-      // fix widths to prevent layout shift (also lock prefix width)
-      [prefixSpan, ...spans].forEach(s=>{
+      // fix widths to prevent layout shift (also lock prefix/suffix width)
+      [prefixSpan, ...spans, suffixSpan].forEach(s=>{
         const w = s.offsetWidth;
         s.style.width = w + 'px';
-        // make sure prefix isn't selectable/animated
-        if(s.classList.contains('autograph-prefix')) s.style.userSelect = 'none';
+        // make sure prefix/suffix aren't selectable/animated
+        if(s.classList.contains('autograph-prefix') || s.classList.contains('autograph-suffix')) s.style.userSelect = 'none';
       });
     } else {
-      // if spans already exist, try to find/create a prefix span
+      // if spans already exist, try to find/create a prefix/suffix span
       if(!prefixSpan){
         prefixSpan = document.createElement('span');
         prefixSpan.className = 'autograph-prefix';
@@ -55,6 +63,15 @@
         const w = prefixSpan.offsetWidth;
         prefixSpan.style.width = w + 'px';
         prefixSpan.style.userSelect = 'none';
+      }
+      if(!suffixSpan){
+        suffixSpan = document.createElement('span');
+        suffixSpan.className = 'autograph-suffix';
+        suffixSpan.textContent = SUFFIX;
+        el.appendChild(suffixSpan);
+        const w = suffixSpan.offsetWidth;
+        suffixSpan.style.width = w + 'px';
+        suffixSpan.style.userSelect = 'none';
       }
     }
     const len = spans.length || 0;

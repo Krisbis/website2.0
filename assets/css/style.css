@@ -1,3 +1,73 @@
+
+/* Raw CLI bash loader styles */
+#loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: #101217;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s;
+}
+/* Loader CLI layout: fix bar/label rows, allow phrase to expand only downward */
+/* Loader CLI layout: bar/label fixed center, phrase at bottom */
+.loader-cli {
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1em;
+  color: #b8e1ff;
+  width: 420px;
+  max-width: 98vw;
+  position: relative;
+}
+.loader-cli-line {
+  width: 100%;
+  white-space: pre;
+  font-size: 1em;
+  color: #b8e1ff;
+  margin-bottom: 0.2em;
+  text-align: center;
+  min-height: 1.3em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#loader-phrase.loader-cli-phrase {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 5vh;
+  margin: 0 auto;
+  width: 100vw;
+  max-width: 98vw;
+  color: #9e9b9b;
+  font-size: 1em;
+  min-height: 1.2em;
+  white-space: pre-line;
+  text-align: center;
+  word-break: break-word;
+  display: block;
+  pointer-events: none;
+  z-index: 10000;
+  padding: 0 2vw;
+}
+@media (max-width: 600px) {
+  .loader-cli { font-size: 0.95em; width: 99vw; }
+  .loader-cli-line, #loader-phrase.loader-cli-phrase { font-size: 0.95em; }
+  #loader-phrase.loader-cli-phrase { bottom: 2vh; padding: 0 1vw; }
+}
+@media (max-width: 600px) {
+  .loader-cli { font-size: 0.95em; width: 99vw; }
+  .loader-cli-line, .loader-cli-phrase { font-size: 0.95em; }
+}
 /* Projects page background video and glassy overlay */
 .bg-video-wrapper{
   position:fixed;
@@ -185,6 +255,8 @@ h1,h2,h3{color:#e6f7ff}
   font-weight:600;
   letter-spacing:0.6px;
 }
+
+
 
 /* explicit class to force Painter font on the brand */
 .autograph-painter{
