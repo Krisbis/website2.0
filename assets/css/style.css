@@ -1,3 +1,29 @@
+/* Background video pause/play button */
+.bg-video-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999; /* above page content */
+  background: rgba(20,24,32,0.32);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.18);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  opacity: 0.9;
+  pointer-events: auto;
+}
+.bg-video-toggle:hover {
+  background: rgba(20,24,32,0.55);
+  opacity: 1;
+}
 @media (max-width:600px){
   .swipe-indicator-glass {
     position: fixed;
@@ -31,6 +57,20 @@
 @keyframes swipePulse {
   0%, 100% { opacity: 0.92; transform: translateY(0); }
   50% { opacity: 1; transform: translateY(8px); }
+}
+/* Hide swipe indicator on larger screens */
+@media (min-width: 601px) {
+  .swipe-indicator-glass {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: fixed !important;
+    bottom: -9999px !important;
+    left: -9999px !important;
+  }
 }
 #about-side-nav .side-nav-social {
   display: flex;
@@ -81,13 +121,6 @@
 #about-sections::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
 }
-#about-sections {
-  /* ...existing styles... */
-  scrollbar-width: thin;
-  scrollbar-color: #00bfff #181c22;
-}
-
-/* Webkit (Chrome, Edge, Safari) custom scrollbar for Bootstrap look */
 /* About page left nav and sections */
 #about-main-row {
   display: flex;
@@ -290,23 +323,6 @@
   .loader-cli { font-size: 0.95em; width: 99vw; }
   .loader-cli-line, .loader-cli-phrase { font-size: 0.95em; }
 }
-/* Projects page background video and glassy overlay */
-.bg-video-wrapper{
-  position:fixed;
-  inset:0;
-  overflow:hidden;
-  z-index:-1;
-  pointer-events:none;
-}
-.bg-video{
-  position:absolute;
-  left:50%; top:50%;
-  width:auto; height:120%;
-  min-width:100%; min-height:100%;
-  transform:translate(-50%,-50%);
-  object-fit:cover;
-  filter:brightness(0.95) saturate(1.05);
-}
 .bg-overlay-glass{
   position:absolute;
   inset:0;
@@ -487,7 +503,7 @@ h1,h2,h3{color:#e6f7ff}
  .autograph-painter{
   font-family: 'Painter', 'JetBrains Mono', 'Share Tech Mono', monospace !important;
   font-weight:normal;
-  font-size:2.52rem;
+  font-size:2.65rem;
   line-height:1;
   display:inline-block;
 }
@@ -606,13 +622,7 @@ SOFTWARE.
   .autograph-painter{ font-size: calc(2.65rem * 0.85); }
 }
 
-/* Responsive brand size for mobile */
-@media (max-width:600px){
-  .autograph-painter{ font-size: 2.27rem !important; }
-}
-@media (max-width:420px){
-  .autograph-painter{ font-size: 2.05rem !important; }
-}
+/* Responsive brand size for mobile (defined earlier; duplicate removed) */
 
 .previewCard::after{
   content:"";
