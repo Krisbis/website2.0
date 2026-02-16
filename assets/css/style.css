@@ -1,3 +1,225 @@
+@media (max-width:600px){
+  .swipe-indicator-glass {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1003;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25em 0;
+    background: rgba(20,24,32,0.32);
+    backdrop-filter: blur(12px) saturate(1.1);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 -2px 16px 0 rgba(0,0,0,0.12);
+    font-family: 'Inter', 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    color: #bbbbbb93;
+    opacity: 0.92;
+    pointer-events: none;
+    animation: swipePulse 1.5s infinite;
+  }
+  .swipe-indicator-glass svg {
+    margin-top: 0.1em;
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+  }
+}
+@keyframes swipePulse {
+  0%, 100% { opacity: 0.92; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(8px); }
+}
+#about-side-nav .side-nav-social {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding: 1.2em 0.5em 1.2em 0.5em;
+  gap: 0.8em;
+}
+#about-side-nav .side-nav-social a {
+  color: #bbbbbb93;
+  background: transparent;
+  border-radius: 50%;
+  padding: 0.3em;
+  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+}
+#about-side-nav .side-nav-social a:hover {
+  background: #8a020233;
+  color: #fff;
+}
+@media (max-width: 600px) {
+  .autograph-painter {
+    font-size: 2.27rem !important;
+  }
+}
+@media (max-width: 420px) {
+  .autograph-painter {
+    font-size: 2.05rem !important;
+  }
+}
+#about-sections {
+  overflow: -moz-scrollbars-none !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+#about-sections::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
+#about-sections {
+  /* Hide scrollbar for all browsers */
+  scrollbar-width: none; /* Firefox */
+}
+#about-sections::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+#about-sections {
+  /* ...existing styles... */
+  scrollbar-width: thin;
+  scrollbar-color: #00bfff #181c22;
+}
+
+/* Webkit (Chrome, Edge, Safari) custom scrollbar for Bootstrap look */
+/* About page left nav and sections */
+#about-main-row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 64px);
+  margin-top: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+#about-side-nav {
+  position: sticky;
+  top: 64px;
+  left: 0;
+  height: calc(100vh - 64px);
+  width: 154px;
+  background: rgba(20,24,32,0.32);
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.12);
+  backdrop-filter: blur(12px) saturate(1.1);
+  border-radius: 0 18px 18px 0;
+  padding-top: 2.5em;
+  font-family: 'Inter', 'JetBrains Mono', monospace;
+}
+#about-side-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+#about-side-nav li {
+  margin: 1.2em 0;
+  text-align: center;
+}
+#about-side-nav a {
+  color: #bbbbbb93;
+  text-decoration: none;
+  font-family: 'Inter', 'JetBrains Mono', monospace;
+  font-size: 1.05em;
+  letter-spacing: 0.01em;
+  padding: 0.4em 0.2em;
+  border-radius: 6px;
+  display: block;
+  transition: background 0.2s, color 0.2s;
+}
+#about-side-nav a:hover, #about-side-nav a.active {
+  background: #8a020233;
+  color: #fff;
+}
+
+#about-sections {
+  flex: 1 1 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  box-sizing: border-box;
+}
+.about-section {
+  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: start;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: aboutFadeIn 0.7s cubic-bezier(.4,2,.6,1) forwards;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.about-section-inner.glass-content {
+  max-width: 980px;
+  min-width: 320px;
+  width: 80vw;
+  margin: 0 auto;
+  padding: 2.5rem 2vw;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+}
+@media (max-width: 800px) {
+  .about-section-inner.glass-content { max-width: 98vw; min-width: 0; width: 98vw; padding: 1.2rem 2vw; }
+}
+@media (max-width: 600px) {
+  .about-section-inner.glass-content { max-width: 99vw; min-width: 0; width: 99vw; padding: 1.2rem 2vw; }
+}
+@media (max-width: 800px) {
+  #about-side-nav { display: none !important; }
+  #about-main-row { flex-direction: column !important; }
+  #about-sections { margin-left: 0 !important; width: 100vw !important; }
+  .about-section.glass-content, .about-section-inner.glass-content { max-width: 98vw; min-width: 0; width: 98vw; padding: 1.2rem 2vw; }
+}
+@media (max-width: 600px) {
+  #about-side-nav { display: none !important; }
+  #about-main-row { flex-direction: column !important; }
+  #about-sections { margin-left: 0 !important; width: 100vw !important; }
+  .about-section.glass-content, .about-section-inner.glass-content { max-width: 99vw; min-width: 0; width: 99vw; padding: 1.2rem 2vw; }
+}
+.about-section h1 {
+  font-size: 2.2em;
+  margin-bottom: 0.7em;
+  color: #bbbbbb93;
+  font-family: 'JetBrains Mono', monospace;
+}
+@keyframes aboutFadeIn {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 800px) {
+  #about-side-nav { width: 64px; }
+  #about-sections { margin-left: 64px; }
+  .about-section h1 { font-size: 1.3em; }
+}
+@media (max-width: 600px) {
+  #about-side-nav { width: 44px; }
+  #about-sections { margin-left: 44px; }
+  .about-section h1 { font-size: 1.1em; }
+}
+
 
 /* Raw CLI bash loader styles */
 #loader-overlay {
@@ -123,14 +345,19 @@
   font-style: normal;
 }
 
-html,body{height:100%;}
-body{
-  margin:0;
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+body {
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-  background: #000; /* totally black */
-  color:#dbe7ee;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+  background: #000;
+  color: #dbe7ee;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Background video wrapper (fixed behind page content) */
@@ -217,18 +444,16 @@ h1,h2,h3{color:#e6f7ff}
 
 /* Hamburger menu hover glow on small screens */
 @media (max-width:991px){
-  /* subtle white text glow on hover for collapsed (hamburger) menu items */
   #site-navbar .navbar-nav .nav-link{
-    transition: text-shadow 160ms ease, color 160ms ease, transform 160ms ease;
-    border-radius:6px;
-    color:var(--muted);
+    color: var(--muted);
+    border-radius: 0;
+    transition: none;
   }
   #site-navbar .navbar-nav .nav-link:hover{
-    /* only text glows (no box highlight) */
-    text-shadow: 0 0 8px rgba(255,255,255,0.95), 0 0 18px rgba(255,255,255,0.22);
     color: #fff;
-    transform: translateY(-1px);
-    text-decoration: none;
+    text-decoration: underline;
+    text-shadow: none;
+    transform: none;
   }
 }
 
@@ -259,10 +484,10 @@ h1,h2,h3{color:#e6f7ff}
 
 
 /* explicit class to force Painter font on the brand */
-.autograph-painter{
+ .autograph-painter{
   font-family: 'Painter', 'JetBrains Mono', 'Share Tech Mono', monospace !important;
   font-weight:normal;
-  font-size:2.65rem;
+  font-size:2.52rem;
   line-height:1;
   display:inline-block;
 }
@@ -379,6 +604,14 @@ SOFTWARE.
 /* Reduce brand size slightly on smaller screens so the hamburger fits */
 @media (max-width:991px){
   .autograph-painter{ font-size: calc(2.65rem * 0.85); }
+}
+
+/* Responsive brand size for mobile */
+@media (max-width:600px){
+  .autograph-painter{ font-size: 2.27rem !important; }
+}
+@media (max-width:420px){
+  .autograph-painter{ font-size: 2.05rem !important; }
 }
 
 .previewCard::after{
