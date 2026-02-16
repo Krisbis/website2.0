@@ -93,6 +93,36 @@
   background: #8a020233;
   color: #fff;
 }
+/* Disable moving glow on sidebar to avoid perceived panel movement */
+#about-side-nav::before, #about-side-nav::after {
+  display: none !important;
+  animation: none !important;
+  opacity: 0 !important;
+}
+/* Create a local stacking context for social icons and allow embers behind them */
+#about-side-nav .side-nav-social {
+  position: relative;
+  overflow: visible;
+}
+#about-side-nav .side-nav-social a {
+  position: relative;
+  z-index: 2;
+}
+/* Ember particles localized to the bottom social area */
+#about-side-nav .side-nav-social .ember-particle{
+  position:absolute;
+  left:0; bottom:0;
+  width:6px; height:6px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  background: radial-gradient(circle, rgba(255,210,140,0.95) 0%, rgba(255,150,60,0.65) 45%, rgba(255,150,60,0) 70%);
+  filter: blur(1.1px) saturate(1.15);
+  animation-name: emberRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
 @media (max-width: 600px) {
   .autograph-painter {
     font-size: 2.27rem !important;
@@ -149,6 +179,66 @@
   border-radius: 0 18px 18px 0;
   padding-top: 2.5em;
   font-family: 'Inter', 'JetBrains Mono', monospace;
+  overflow: visible; /* allow glow to extend slightly outside */
+}
+
+/* Smoldering glow along the left edge of the sidebar */
+#about-side-nav::before{
+  content:"";
+  position:absolute;
+  top:0; bottom:0; left:-6px;
+  width:14px;
+  pointer-events:none;
+  /* warm glow fading outwards */
+  background: radial-gradient(closest-side, rgba(255,140,60,0.55), rgba(255,140,60,0.15) 60%, rgba(255,140,60,0) 100%);
+  filter: blur(10px) saturate(1.25);
+  opacity: 0.38;
+  animation: smolderPulse 2.6s ease-in-out infinite;
+}
+
+/* Occasional ember flicker near the bottom-left */
+#about-side-nav::after{
+  content:"";
+  position:absolute;
+  left:-10px; bottom:12px;
+  width:28px; height:42px;
+  pointer-events:none;
+  background: radial-gradient(circle at 50% 70%, rgba(255,190,90,0.45) 0%, rgba(255,120,40,0.25) 40%, rgba(255,120,40,0) 70%);
+  filter: blur(12px) saturate(1.2);
+  opacity: 0.32;
+  animation: emberFlicker 1.9s ease-in-out infinite;
+}
+
+@keyframes smolderPulse{
+  0%, 100% { opacity: 0.34; transform: scaleY(1); }
+  50% { opacity: 0.62; transform: scaleY(1.025); }
+}
+
+@keyframes emberFlicker{
+  0%, 100% { opacity: 0.28; transform: translateY(0); }
+  35% { opacity: 0.5; transform: translateY(-2px); }
+  65% { opacity: 0.36; transform: translateY(1px); }
+}
+
+/* Floating ember particles (JS-generated) */
+#about-side-nav .ember-particle{
+  position:absolute;
+  left:0; bottom:0;
+  width:6px; height:6px;
+  border-radius:50%;
+  pointer-events:none;
+  background: radial-gradient(circle, rgba(255,210,140,0.95) 0%, rgba(255,150,60,0.65) 45%, rgba(255,150,60,0) 70%);
+  filter: blur(1.1px) saturate(1.15);
+  animation-name: emberRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes emberRise{
+  0%   { transform: translate(0, 0); opacity: 0.0; }
+  10%  { opacity: 0.55; }
+  60%  { opacity: 0.45; }
+  100% { transform: translate(var(--ember-driftX, 6px), calc(-1 * var(--ember-rise, 60px))); opacity: 0.0; }
 }
 #about-side-nav ul {
   list-style: none;
@@ -183,6 +273,8 @@
   overflow-x: hidden;
   scroll-snap-type: y mandatory;
   box-sizing: border-box;
+  scrollbar-gutter: stable both-edges;
+  overscroll-behavior: contain;
 }
 .about-section {
   min-height: calc(100vh - 64px);
@@ -235,6 +327,26 @@
   margin-bottom: 0.7em;
   color: #bbbbbb93;
   font-family: 'JetBrains Mono', monospace;
+}
+/* Certifications grid */
+.cert-grid {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+.cert-grid img {
+  max-width: 200px;
+  width: 36vw;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+}
+@media (max-width: 600px) {
+  .cert-grid img { width: 70vw; max-width: 280px; }
 }
 @keyframes aboutFadeIn {
   to {
@@ -359,6 +471,7 @@
   src: local('Painter'), local('Painter-LxXg'), url('../fonts/painter-font/Painter-LxXg.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 html, body {
@@ -438,6 +551,7 @@ h1,h2,h3{color:#e6f7ff}
 /* navbar ribbon style on large screens */
 #site-navbar{
   border-bottom:1px solid rgba(255,255,255,0.04);
+  min-height: 64px;
 }
 .navbar-brand.autograph{font-family: 'Share Tech Mono', monospace; letter-spacing:1px}
 
@@ -542,6 +656,7 @@ h1,h2,h3{color:#e6f7ff}
 
 .text-muted{color:var(--muted) !important}
 
+/* START of Copyrighted snippet */
 /*
 Copyright (c) 2026 by Robin (https://codepen.io/lessthanthree/pen/LENwGyZ)
 
@@ -688,4 +803,4 @@ SOFTWARE.
   width:2rem;
   height:2rem;
 }
-/* End of Copyrighted snippet */
+/* END of Copyrighted snippet */
