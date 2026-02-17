@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>About</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
 </head>
+
 <body>
   <!-- Loader overlay (CLI style) -->
   <div id="loader-overlay">
@@ -21,7 +25,8 @@
   <!-- Background video and glassy overlay -->
   <!-- BG-video created by: olenchic - https://pixabay.com/videos/fire-flames-sparks-ignition-214404/ -->
   <div class="bg-video-wrapper">
-    <video id="aboutBgVideo" class="bg-video" src="assets/videos/about_background.mp4" autoplay loop muted playsinline></video>
+    <video id="aboutBgVideo" class="bg-video" src="assets/videos/about_background.mp4" autoplay loop muted
+      playsinline></video>
     <div class="bg-overlay-glass"></div>
   </div>
 
@@ -49,7 +54,10 @@
   <script src="assets/js/loader.js"></script>
   <script src="assets/js/about-active.js"></script>
   <script src="assets/js/side-nav-embers.js"></script>
-  
+  <!-- Chart.js for Dunning–Kruger graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="assets/js/dunning-kruger.js"></script>
+
   <!-- Background video pause/play button (kept outside bg-video-wrapper to stay clickable) -->
   <button id="bgVideoToggle" class="bg-video-toggle" aria-label="Pause background video" title="Pause background video">
     <span id="bgVideoToggleIcon">❚❚</span>
@@ -57,32 +65,32 @@
 
   <script>
     // Toggle play/pause for the About page background video
-    (function(){
-      function init(){
+    (function () {
+      function init() {
         var video = document.getElementById('aboutBgVideo');
         var btn = document.getElementById('bgVideoToggle');
         var icon = document.getElementById('bgVideoToggleIcon');
-        if(!video || !btn || !icon) return;
+        if (!video || !btn || !icon) return;
 
-        btn.addEventListener('click', function(){
-          if(video.paused){
+        btn.addEventListener('click', function () {
+          if (video.paused) {
             video.play();
             icon.textContent = '❚❚';
-            btn.setAttribute('aria-label','Pause background video');
-            btn.setAttribute('title','Pause background video');
+            btn.setAttribute('aria-label', 'Pause background video');
+            btn.setAttribute('title', 'Pause background video');
           } else {
             video.pause();
             icon.textContent = '►';
-            btn.setAttribute('aria-label','Play background video');
-            btn.setAttribute('title','Play background video');
+            btn.setAttribute('aria-label', 'Play background video');
+            btn.setAttribute('title', 'Play background video');
           }
         });
 
         // keep icon in sync if video state changes externally
-        video.addEventListener('play', function(){ icon.textContent='❚❚'; });
-        video.addEventListener('pause', function(){ icon.textContent='►'; });
+        video.addEventListener('play', function () { icon.textContent = '❚❚'; });
+        video.addEventListener('pause', function () { icon.textContent = '►'; });
       }
-      if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
     })();
   </script>
   <div id="about-main-row">
@@ -98,44 +106,119 @@
       </ul>
       <div class="side-nav-social">
         <a href="https://www.linkedin.com/in/kristian-sikanen-560117245/" target="_blank" aria-label="LinkedIn">
-          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.379-1.563 2.841-1.563 3.039 0 3.6 2.001 3.6 4.601v5.595z"/></svg>
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-10h3v10zm-1.5-11.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 11.268h-3v-5.604c0-1.337-.026-3.063-1.868-3.063-1.868 0-2.154 1.459-2.154 2.967v5.7h-3v-10h2.881v1.367h.041c.401-.761 1.379-1.563 2.841-1.563 3.039 0 3.6 2.001 3.6 4.601v5.595z" />
+          </svg>
         </a>
         <a href="https://github.com/Krisbis" target="_blank" aria-label="GitHub">
-          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.757-1.333-1.757-1.089-.744.083-.729.083-.729 1.205.084 1.84 1.236 1.84 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.776.418-1.304.762-1.604-2.665-.304-5.466-1.332-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.553 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.803 5.624-5.475 5.921.43.371.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.757-1.333-1.757-1.089-.744.083-.729.083-.729 1.205.084 1.84 1.236 1.84 1.236 1.07 1.834 2.809 1.304 3.495.997.108-.776.418-1.304.762-1.604-2.665-.304-5.466-1.332-5.466-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.553 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.803 5.624-5.475 5.921.43.371.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.218.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+          </svg>
         </a>
         <a href="https://tryhackme.com/p/xorxorplain" target="_blank" aria-label="TryHackMe">
-          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.477 2 2 6.477 2 12c0 5.523 4.477 10 10 10s10-4.477 10-10c0-5.523-4.477-10-10-10zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+          </svg>
         </a>
       </div>
     </nav>
     <div id="about-sections">
-      <section id="whoami" class="about-section">
-        <div class="glass-content about-section-inner"><h1>whoami</h1><p>Short bio or intro here.</p></div>
+      <section id="whoami" class="about-section whoami-slide" data-nav="whoami">
+        <div class="glass-content about-section-inner">
+          <h1>whoami</h1>
+          <p>In a nutshell? Just a dude who is passionate about IT, cybersecurity and learning new stuff.</p>
+          <br>
+          <p>Lenghty rambly summary?
+            I'm graduating with a B.Eng. in Information Technology (IT Engineering) from Tampere
+            University of Applied Sciences (TAMK), specializing in networking and telecommunications, with a secondary
+            focus on software engineering. One could say I'm late bloomer in the field; as a kid, i was more interested
+            in just playing Doom, rather than finding out what devices can run it. With time (and good 6 years of
+            selling furnitures) my curiosity to all things digital grew. I enrolled in school with a thought of becoming
+            software engineer, but cybersecurity cunningly drew me in.</p>
+          <br>
+          <p>As a late bloomer, I had serious catching up to do. Several years grinding in Cisco Packet Tracer, learning
+            networking protocols, Linux, Windows, programming (C++, Java), binging YouTube channels, participating in
+            CTFs, devouring darknet diaries podcast as whole and bashing my head against THM and HTB boxes. I now can
+            with
+            almost full certainty say that I'm probably now past the valley of despair on the chart displayed next
+            slide. I know that
+            I don't know, but I'm not clueless about how much I don't know. And that's a good place to be!</p>
+        </div>
+      </section>
+
+      <section id="whoami-dk" class="about-section whoami-slide" data-nav="whoami">
+        <div class="glass-content about-section-inner">
+          <h1>Cool chart</h1>
+          <figure class="dk-graph" aria-labelledby="dk-caption">
+            <canvas id="dkChart" aria-label="Dunning–Kruger chart" role="img"></canvas>
+          </figure>
+          <div class="dk-legend" aria-label="Chart legend">
+            <div class="dk-legend-item"><span class="dk-legend-dot dk-peak"></span><span>peak of "Mt. Stupid"</span>
+            </div>
+            <div class="dk-legend-item"><span class="dk-legend-dot dk-valley"></span><span>valley of despair</span>
+            </div>
+            <div class="dk-legend-item"><span class="dk-legend-dot dk-slope"></span><span>slope of enlightenment</span>
+            </div>
+            <div class="dk-legend-item"><span class="dk-legend-dot dk-plateau"></span><span>plateau of
+                sustainability</span></div>
+          </div>
+          <br>
+          <p class="dk-disclaimer">(This graph is used purely for self-aware humorous purposes)</p>
+        </div>
+      </section>
+
+      <section id="whoami-empty" class="about-section whoami-slide" data-nav="whoami">
+        <div class="glass-content about-section-inner">
+          <p>Humor aside, it's impossible to try to master all of the domains in cybersecurity. Strength of the
+            community
+            lies in collaboration. I'm currently gathering knowledge in blue team operations while working as T1/T2 SOC
+            analyst with different flavours of cloud and all that comes with it. However I'm strongly focused on
+            learning penetration testing and offensive security techniques. This website has been created mainly to
+            serve as a tracker for my progress in learning offensive security, mainly through PWND boxes (check out the projects -section).</p>
+        </div>
       </section>
       <section id="experience" class="about-section">
-        <div class="glass-content about-section-inner"><h1>Experience</h1><p>Work, projects, or relevant experience.</p></div>
+        <div class="glass-content about-section-inner">
+          <h1>Experience</h1>
+          <p>Work, projects, or relevant experience.</p>
+        </div>
       </section>
       <section id="events" class="about-section">
-        <div class="glass-content about-section-inner"><h1>Events</h1><p>Talks, conferences, or competitions.</p></div>
+        <div class="glass-content about-section-inner">
+          <h1>Events</h1>
+          <p>Talks, conferences, or competitions.</p>
+        </div>
       </section>
       <section id="certifications" class="about-section">
         <div class="glass-content about-section-inner">
           <h1>Certifications</h1>
           <div class="cert-grid">
             <img src="assets/images/az-900_cert_thumb.png" alt="Microsoft Azure Fundamentals (AZ-900)" loading="lazy">
-            <img src="assets/images/sc-900_cert_thumb.png" alt="Microsoft Security, Compliance, and Identity Fundamentals (SC-900)" loading="lazy">
+            <img src="assets/images/sc-900_cert_thumb.png"
+              alt="Microsoft Security, Compliance, and Identity Fundamentals (SC-900)" loading="lazy">
           </div>
         </div>
       </section>
       <section id="courses" class="about-section">
-        <div class="glass-content about-section-inner"><h1>Notable Courses</h1><p>Highlight important courses or certifications.</p></div>
+        <div class="glass-content about-section-inner">
+          <h1>Notable Courses</h1>
+          <p>Highlight important courses or certifications.</p>
+        </div>
       </section>
       <section id="planned" class="about-section">
-        <div class="glass-content about-section-inner"><h1>Planned</h1><p>Upcoming goals, plans, or learning paths.</p></div>
+        <div class="glass-content about-section-inner">
+          <h1>Planned</h1>
+          <p>Upcoming goals, plans, or learning paths.</p>
+        </div>
       </section>
       <div class="swipe-indicator-glass">
         <span>Swipe down for more</span>
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 24l-8-8h16l-8 8z" fill="#fff" opacity="0.7"/></svg>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M16 24l-8-8h16l-8 8z" fill="#fff" opacity="0.7" />
+        </svg>
       </div>
     </div>
   </div>

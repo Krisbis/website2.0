@@ -6,8 +6,17 @@
     var container = document.getElementById('about-sections');
     var sections = Array.prototype.slice.call(document.querySelectorAll('#about-sections .about-section'));
     var navLinks = Array.prototype.slice.call(document.querySelectorAll('#about-side-nav a[href^="#"]'));
+    var swipeIndicator = document.querySelector('.swipe-indicator-glass');
 
     if(!container || sections.length === 0 || navLinks.length === 0){ return; }
+
+    // Hide the swipe indicator when reaching the end of content
+    function updateSwipeIndicator(){
+      if(!swipeIndicator) return;
+      var remaining = container.scrollHeight - (container.scrollTop + container.clientHeight);
+      var atEnd = remaining <= 6; // px threshold
+      swipeIndicator.classList.toggle('is-hidden', atEnd);
+    }
 
     // map section id -> nav link
     var linkMap = {};
@@ -24,13 +33,18 @@
       if(link){ link.classList.add('active'); }
     }
 
+    function getNavIdForSection(sec){
+      if(!sec) return null;
+      return sec.getAttribute('data-nav') || sec.id || null;
+    }
+
     // IntersectionObserver (preferred)
     try{
       var observer = new IntersectionObserver(function(entries){
         entries.forEach(function(entry){
           if(entry.isIntersecting){
-            var id = entry.target.id;
-            if(id){ setActive(id); }
+            var navId = getNavIdForSection(entry.target);
+            if(navId){ setActive(navId); }
           }
         });
       }, {
@@ -39,11 +53,15 @@
         rootMargin: '0px 0px 0px 0px'
       });
       sections.forEach(function(sec){ if(sec.id){ observer.observe(sec); } });
+
+      container.addEventListener('scroll', updateSwipeIndicator, { passive: true });
+      window.addEventListener('resize', updateSwipeIndicator);
+      updateSwipeIndicator();
     } catch(e){
       // Fallback: compute active on scroll
       function computeActive(){
         var containerRect = container.getBoundingClientRect();
-        var bestId = null;
+        var bestNavId = null;
         var bestVisible = -Infinity;
         sections.forEach(function(sec){
           var r = sec.getBoundingClientRect();
@@ -53,32 +71,43 @@
           var visible = bottom - top;
           if(visible > bestVisible){
             bestVisible = visible;
-            bestId = sec.id;
+            bestNavId = getNavIdForSection(sec);
           }
         });
-        if(bestId){ setActive(bestId); }
+        if(bestNavId){ setActive(bestNavId); }
       }
       container.addEventListener('scroll', computeActive, { passive: true });
+      container.addEventListener('scroll', updateSwipeIndicator, { passive: true });
       window.addEventListener('resize', computeActive);
+      window.addEventListener('resize', updateSwipeIndicator);
       computeActive();
+      updateSwipeIndicator();
     }
 
     // Sync with hash changes (e.g., clicking anchor links)
     window.addEventListener('hashchange', function(){
       var id = (location.hash || '').replace('#','');
-      if(id){ setActive(id); }
+      if(!id) return;
+      var target = document.getElementById(id);
+      var navId = (target && target.getAttribute('data-nav')) ? target.getAttribute('data-nav') : id;
+      setActive(navId);
     });
 
     // Immediate feedback on link click
     navLinks.forEach(function(a){
       a.addEventListener('click', function(){
         var href = a.getAttribute('href') || '';
-        if(href.charAt(0) === '#'){ setActive(href.slice(1)); }
+        if(href.charAt(0) !== '#') return;
+        var id = href.slice(1);
+        var target = document.getElementById(id);
+        var navId = (target && target.getAttribute('data-nav')) ? target.getAttribute('data-nav') : id;
+        setActive(navId);
       });
     });
 
     // Initialize state using the first section
     var initial = sections[0];
-    if(initial && initial.id){ setActive(initial.id); }
+    var initialNav = getNavIdForSection(initial);
+    if(initialNav){ setActive(initialNav); }
   });
 })();
