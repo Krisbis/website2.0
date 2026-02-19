@@ -346,9 +346,253 @@
   font-size: medium;
 }
 
+/* Experience section */
+.experience-entry{
+  width: 100%;
+  max-width: 820px;
+  text-align: left;
+}
+.experience-title{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.45em;
+  color: #ccccccd3;
+  margin: 0 0 0.75rem 0;
+}
+.experience-meta{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+  opacity: 0.78;
+  margin: -0.35rem 0 0.85rem 0;
+}
+.experience-bullets{
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.experience-bullets li{
+  color: #ffffffab;
+  margin: 0.45rem 0;
+  line-height: 1.5;
+}
+
+/* Planned progress */
+.planned-title{
+  font-family: 'Inter', 'JetBrains Mono', monospace;
+  font-size: medium;
+  color: #ffffffab;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+.legendary-word{
+  color: rgba(255, 140, 60, 0.95);
+  font-weight: 600;
+}
+
+.planned-progress{
+  width: 100%;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.planned-progress-legendary{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 140, 60, 0.10);
+  border: 1px solid rgba(255, 140, 60, 0.26);
+  box-shadow:
+    0 10px 28px rgba(0,0,0,0.26),
+    0 0 0 1px rgba(255, 140, 60, 0.10) inset;
+  box-sizing: border-box;
+}
+
+.planned-progress-right{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.planned-progress-track{
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(180deg, rgba(10,12,16,0.70), rgba(20,24,32,0.55));
+  border: 1px solid rgba(247, 208, 112, 0.18);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 10px rgba(0,0,0,0.35) inset,
+    0 1px 0 rgba(255,255,255,0.06) inset;
+}
+.planned-progress-fill{
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    rgba(138, 2, 2, 0.96) 0%,
+    rgba(255, 140, 60, 0.96) 40%,
+    rgba(247, 208, 112, 0.98) 85%,
+    rgba(255, 240, 200, 0.85) 100%
+  );
+  border-radius: 999px;
+  box-shadow:
+    0 0 14px rgba(255, 140, 60, 0.26),
+    0 0 26px rgba(247, 208, 112, 0.18);
+  position: relative;
+}
+
+.planned-progress-fill::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1px;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0));
+  pointer-events: none;
+}
+
+.planned-progress-text{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+  opacity: 0.78;
+  text-align: right;
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.planned-info{
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: rgba(255, 140, 60, 0.95);
+  background: rgba(20,24,32,0.40);
+  border: 1px solid rgba(255, 140, 60, 0.26);
+  cursor: help;
+}
+
+.planned-info::after{
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: max-content;
+  max-width: min(320px, 86vw);
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(20,24,32,0.86);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: #cfd6dc;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 2000;
+}
+
+.planned-info:hover::after,
+.planned-info:focus-visible::after{
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* About meme (final slide) */
+.meme-container.about-section-inner.glass-content{
+  padding: 0;
+  width: min(760px, 92vw);
+  max-width: 760px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.about-meme{
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 600px){
+  .planned-progress{ max-width: 92vw; }
+  .planned-progress-track{ height: 10px; }
+  .planned-progress-legendary{ flex-wrap: wrap; gap: 0.65rem; padding: 0.7rem 0.8rem; }
+  .planned-progress-track{ flex: 1 1 100%; }
+  .planned-progress-right{ margin-left: 0; width: 100%; justify-content: flex-end; }
+  .planned-progress-text{ font-size: 0.78rem; }
+}
+
+/* Notable courses (side-by-side blocks) */
+.courses-grid{
+  width: 100%;
+  max-width: 980px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  text-align: left;
+}
+.courses-block{
+  min-width: 0;
+}
+.courses-block .experience-title{
+  font-size: 1.25em;
+  margin-bottom: 0.6rem;
+}
+
+.courses-external{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.tryhackme-badge{
+  width: 420px;
+  max-width: 92vw;
+  height: 210px;
+  border: none;
+}
+
+@media (min-width: 601px){
+  .tryhackme-badge{ transform: translateX(45px);     justify-content: center;
+ }
+}
+@media (max-width: 599px){
+  .tryhackme-badge{ transform: translateX(22px); }
+}
+
+@media (max-width: 991px){
+  .courses-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px){
+  .courses-grid{ grid-template-columns: 1fr; gap: 1rem; }
+  .courses-external{ margin-top: 0.75rem; }
+  .tryhackme-badge{ width: 92vw; height: 200px; }
+}
+
 /* Smaller text on small screens (similar density to index terminal) */
 @media (max-width: 600px) {
   .about-section p { font-size: 0.86rem; }
+  #about-sections .about-section li { font-size: 0.86rem; }
+  .experience-title { font-size: 1.15em; margin-bottom: 0.55rem; }
+  .experience-meta { font-size: 0.78rem; margin: -0.25rem 0 0.75rem 0; }
+  .experience-bullets li { margin: 0.35rem 0; line-height: 1.45; }
   .dk-legend { font-size: 0.82rem; }
 }
 /* Certifications grid */
@@ -362,14 +606,14 @@
   padding: 0.5rem 0;
 }
 .cert-grid img {
-  max-width: 200px;
-  width: 36vw;
+  max-width: 160px;
+  width: 28.8vw;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.22);
 }
 @media (max-width: 600px) {
-  .cert-grid img { width: 70vw; max-width: 280px; }
+  .cert-grid img { width: 56vw; max-width: 224px; }
 }
 @keyframes aboutFadeIn {
   to {
@@ -388,13 +632,19 @@
   .about-section h1 { font-size: 1.1em; }
 }
 
-  /* Wider glass container only for whoami slides (desktop) */
-  @media (min-width: 801px){
-    .whoami-slide .about-section-inner.glass-content{
-      width: 100vw;          /* 25% wider than base 80vw (80vw * 1.25 = 100vw) */
-      max-width: 1225px;     /* 25% wider than base 980px */
-    }
+/* Tablet / medium desktop sizing (prevents vw-based overflow next to sidebar) */
+@media (min-width: 801px) and (max-width: 1450px){
+  .about-section-inner.glass-content{ width: 92%; }
+  .whoami-slide .about-section-inner.glass-content{ width: 96%; }
+}
+
+/* Wider glass container only for whoami slides (desktop) */
+@media (min-width: 801px){
+  .whoami-slide .about-section-inner.glass-content{
+    width: 100%;
+    max-width: 1225px;
   }
+}
 
 
 /* Raw CLI bash loader styles */

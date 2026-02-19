@@ -57,6 +57,7 @@
   <!-- Chart.js for Dunning–Kruger graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="assets/js/dunning-kruger.js"></script>
+  <script src="assets/js/planned-progress.js"></script>
 
   <!-- Background video pause/play button (kept outside bg-video-wrapper to stay clickable) -->
   <button id="bgVideoToggle" class="bg-video-toggle" aria-label="Pause background video" title="Pause background video">
@@ -131,21 +132,24 @@
           <h1>whoami</h1>
           <p>In a nutshell? Just a dude who is passionate about IT, cybersecurity and learning new stuff.</p>
           <br>
-          <p>Lenghty rambly summary?
-            I'm graduating with a B.Eng. in Information Technology (IT Engineering) from Tampere
+          <p>I'm graduating with a B.Eng. in Information Technology (IT Engineering) from Tampere
             University of Applied Sciences (TAMK), specializing in networking and telecommunications, with a secondary
-            focus on software engineering. One could say I'm late bloomer in the field; as a kid, i was more interested
-            in just playing Doom, rather than finding out what devices can run it. With time (and good 6 years of
-            selling furnitures) my curiosity to all things digital grew. I enrolled in school with a thought of becoming
-            software engineer, but cybersecurity cunningly drew me in.</p>
+            focus on software engineering.
+            <br>
+            <br>
+            I was a late bloomer in tech. As a kid, I was more interested in playing Doom than figuring out what could
+            run it. With time (and good 6 years of
+            selling furnitures) my curiosity to all things digital grew, so i enrolled in school with a thought of
+            becoming
+            software engineer, but cybersecurity cunningly drew me in.
+          </p>
           <br>
-          <p>As a late bloomer, I had serious catching up to do. Several years grinding in Cisco Packet Tracer, learning
+          <p>With a late start, I had serious catching up to do. Several years grinding in Cisco Packet Tracer, learning
             networking protocols, Linux, Windows, programming (C++, Java), binging YouTube channels, participating in
-            CTFs, devouring darknet diaries podcast as whole and bashing my head against THM and HTB boxes. I now can
+            CTFs, devouring darknet diaries podcast as whole and bashing my head against THM and HTB boxes, I now can
             with
-            almost full certainty say that I'm probably now past the valley of despair on the chart displayed next
-            slide. I know that
-            I don't know, but I'm not clueless about how much I don't know. And that's a good place to be!</p>
+            almost full certainty say that I'm now slightly past the "valley of despair", visualized in the chart displayed next
+            slide.</p>
         </div>
       </section>
 
@@ -166,30 +170,58 @@
                 sustainability</span></div>
           </div>
           <br>
-          <p class="dk-disclaimer">(This graph is used purely for self-aware humorous purposes)</p>
+          <p class="dk-disclaimer">(This graph is used purely for humorous self-aware purposes)</p>
         </div>
       </section>
 
       <section id="whoami-empty" class="about-section whoami-slide" data-nav="whoami">
         <div class="glass-content about-section-inner">
-          <p>Humor aside, it's impossible to try to master all of the domains in cybersecurity. Strength of the
-            community
-            lies in collaboration. I'm currently gathering knowledge in blue team operations while working as T1/T2 SOC
-            analyst with different flavours of cloud and all that comes with it. However I'm strongly focused on
-            learning penetration testing and offensive security techniques. This website has been created mainly to
-            serve as a tracker for my progress in learning offensive security, mainly through PWND boxes (check out the projects -section).</p>
+          <p>
+            Right now, I’m building depth in blue team operations while working as a T1/T2 SOC analyst. A big part of my day is spent inside logs, trying to decide whether an alert is real signal
+            or just background noise. And when it’s signal, I want to understand what it’s attempting to do and how to
+            shut it down properly.
+            <br><br>
+            I genuinely enjoy that process. The digging, the pattern recognition, the small details that suddenly make
+            sense. Even the noise teaches how protocols behave, how systems communicate, what “normal”
+            really looks like at scale. That analytical curiosity, that willingness to sit with messy data until it
+            clicks. This is where my strength lies.
+            <br><br>
+            As much as I value blue team work, I’m intentionally pushing myself toward offensive security as well. I
+            want to understand systems from both sides. My goal is to become proficient in penetration testing
+            and eventually break into the field. This website exists mainly as a tracker of that journey - documenting
+            the labs, the challenges, and the steady progression behind the scenes.
+          </p>
+
         </div>
       </section>
       <section id="experience" class="about-section">
         <div class="glass-content about-section-inner">
           <h1>Experience</h1>
-          <p>Work, projects, or relevant experience.</p>
+          <div class="experience-entry" aria-label="Work experience">
+            <h2 class="experience-title">Junior SOC Specialist</h2>
+            <div class="experience-meta">4/2025 – current</div>
+            <ul class="experience-bullets">
+              <li>Analysis of security alerts using industry-standard SIEM tools</li>
+              <li>Performing case triage, escalation, and containment actions</li>
+              <li>Implementation and maintenance of rule-based filtering to reduce false positives</li>
+              <li>Monitoring, analysis, and management of security events in cloud environments</li>
+              <li>Documentation of findings and actions, ensuring adherence to and development of security processes</li>
+              <li>Interpreting and researching threat intelligence, utilizing multiple OSINT tools to support investigations</li>
+              <li>Working as part of an experienced team while learning from seasoned security professionals</li>
+            </ul>
+          </div>
         </div>
       </section>
       <section id="events" class="about-section">
         <div class="glass-content about-section-inner">
           <h1>Events</h1>
-          <p>Talks, conferences, or competitions.</p>
+          <div class="experience-entry" aria-label="Events participated">
+            <h2 class="experience-title">Participated</h2>
+            <ul class="experience-bullets">
+              <li>LähiTapiola HackDay 2025</li>
+              <li>Faust A/D CTF 2025</li>
+            </ul>
+          </div>
         </div>
       </section>
       <section id="certifications" class="about-section">
@@ -205,13 +237,82 @@
       <section id="courses" class="about-section">
         <div class="glass-content about-section-inner">
           <h1>Notable Courses</h1>
-          <p>Highlight important courses or certifications.</p>
+          <div class="courses-grid" aria-label="Notable courses">
+            <div class="courses-block">
+              <h2 class="experience-title">Cisco Networking Academy</h2>
+              <ul class="experience-bullets">
+                <li>CCNA</li>
+                <li>CyberOps Associate</li>
+                <li>CCNP Core Networking</li>
+                <li>Ethical Hacker</li>
+              </ul>
+            </div>
+
+            <div class="courses-block">
+              <h2 class="experience-title">TryHackMe Learning Paths</h2>
+              <ul class="experience-bullets">
+                <li>Web Fundamentals</li>
+                <li>Jr Penetration Tester</li>
+                <li>Web Application Pentesting (In Progress)</li>
+              </ul>
+            </div>
+
+            <div class="courses-block">
+              <h2 class="experience-title">MPK</h2>
+              <ul class="experience-bullets">
+                <li>Advanced Cybersecurity Course - SOC1</li>
+                <li>Advanced Cybersecurity Course - Forensics</li>
+                <li>Cybersecurity Special Course 24 (live fire)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="courses-external" aria-label="TryHackMe badge">
+          <iframe
+            class="tryhackme-badge"
+            src="https://tryhackme.com/api/v2/badges/public-profile?userPublicId=2300878"
+            title="TryHackMe public profile badge"
+            loading="lazy"
+            style="border:none;"
+          ></iframe>
         </div>
       </section>
       <section id="planned" class="about-section">
         <div class="glass-content about-section-inner">
           <h1>Planned</h1>
-          <p>Upcoming goals, plans, or learning paths.</p>
+          <div class="experience-entry" aria-label="Planned goals">
+            <p class="planned-title"><span class="legendary-word">Legendary</span> Quest: Pwn 100 boxes</p>
+            <div
+              id="planned-progress"
+              class="planned-progress"
+              data-target="100"
+              role="progressbar"
+              aria-label="Pwn 100 boxes progress"
+            >
+              <div class="planned-progress-legendary" aria-label="Progress">
+                <div class="planned-progress-track">
+                  <div class="planned-progress-fill"></div>
+                </div>
+                <div class="planned-progress-right">
+                  <div class="planned-progress-text">0 / 100</div>
+                  <span
+                    class="planned-info"
+                    tabindex="0"
+                    role="button"
+                    aria-label="Progress info"
+                    data-tooltip="Rewards for completing this quest: bragging rights"
+                  >ℹ</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="planned-meme" class="about-section" data-nav="planned">
+        <div class="glass-content about-section-inner meme-container">
+          <img class="about-meme" src="assets/images/preciousoscp.png" alt="Precious OSCP meme" loading="lazy">
         </div>
       </section>
       <div class="swipe-indicator-glass">

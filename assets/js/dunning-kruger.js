@@ -65,11 +65,28 @@
           x: 8,
           y: 86,
           title: 'peak of "Mt. Stupid"',
-          story: 'Learnt to use msfconsole: "Hacking is easy"'
+          story: 'Learnt to use msfconsole: "Hehe, Hacking is so easy"'
         },
         { x: 28, y: 24, title: 'valley of despair', story: '' },
         { x: 58, y: 60, title: 'slope of enlightenment', story: '' },
         { x: 88, y: 78, title: 'plateau of sustainability', story: '' }
+      ];
+
+      // 5 grey descent markers along the bezier from Mt. Stupid → Valley of Despair
+      var descentColor = 'rgba(180,180,180,0.55)';
+      var descentDefs = [
+        {x: 10.2, y: 83,   color: descentColor},
+        {x: 12.8, y: 72.7, color: descentColor},
+        {x: 15.8, y: 58.3, color: descentColor},
+        {x: 19.2, y: 43.2, color: descentColor},
+        {x: 23.3, y: 30.7, color: descentColor}
+      ];
+      var descentNotes = [
+        {x: 10.2, y: 83,   title: 'cracks forming',         story: 'Soo what do i do now when metasploit modules don\'t work on a box no matter how hard i push the button?'},
+        {x: 12.8, y: 72.7, title: 'the slide begins',       story: 'The hell is a buffer overflow? Why there is no GUI for msfvenom?'},
+        {x: 15.8, y: 58.3, title: 'brutal realization',     story: 'Crypto, reversing, writing exploits, DEEP knowledge of OS internals.. man there\'s so much to learn'},
+        {x: 19.2, y: 43.2, title: 'freefall',               story: 'Reading a CVE writeup with working exploit and understanding about 10% of it'},
+        {x: 23.3, y: 30.7, title: 'rock bottom approaches', story: 'Starting to question all prior "knowledge"'}
       ];
 
       var labels = [
@@ -131,9 +148,123 @@
             ctx.strokeStyle = 'rgba(255,255,255,0.25)';
             ctx.stroke();
           });
+          // Grey descent markers (smaller)
+          descentDefs.forEach(function(p){
+            var px = xScale.getPixelForValue(p.x);
+            var py = yScale.getPixelForValue(p.y);
+            ctx.beginPath();
+            ctx.arc(px, py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.stroke();
+          });
           ctx.restore();
         }
       };
+
+      function getOrCreateSmallTooltip(){
+        var id = 'dk-small-tooltip';
+        var tooltipEl = document.getElementById(id);
+        if(tooltipEl) return tooltipEl;
+
+        tooltipEl = document.createElement('div');
+        tooltipEl.id = id;
+        tooltipEl.style.position = 'fixed';
+        tooltipEl.style.left = '0px';
+        tooltipEl.style.top = '0px';
+        tooltipEl.style.opacity = '0';
+        tooltipEl.style.pointerEvents = 'none';
+        tooltipEl.style.zIndex = '9999';
+        tooltipEl.style.maxWidth = 'calc(100vw - 24px)';
+        tooltipEl.style.minWidth = '240px';
+
+        tooltipEl.style.padding = '12px 14px';
+        tooltipEl.style.borderRadius = '12px';
+        tooltipEl.style.border = '1px solid rgba(255,255,255,0.12)';
+        tooltipEl.style.background = 'rgba(20,24,32,0.92)';
+        tooltipEl.style.backdropFilter = 'blur(8px)';
+        tooltipEl.style.boxShadow = '0 10px 28px rgba(0,0,0,0.45)';
+
+        tooltipEl.style.color = '#cfd6dc';
+        tooltipEl.style.fontFamily = '"JetBrains Mono", monospace';
+        tooltipEl.style.fontSize = '12px';
+        tooltipEl.style.lineHeight = '1.35';
+        tooltipEl.style.whiteSpace = 'normal';
+        tooltipEl.style.wordBreak = 'break-word';
+        tooltipEl.style.overflowWrap = 'anywhere';
+
+        document.body.appendChild(tooltipEl);
+        return tooltipEl;
+      }
+
+      function smallScreenExternalTooltip(context){
+        var chart = context.chart;
+        var tooltip = context.tooltip;
+        var tooltipEl = getOrCreateSmallTooltip();
+
+        if(!tooltip || tooltip.opacity === 0){
+          tooltipEl.style.opacity = '0';
+          return;
+        }
+
+        // Build content (wraps naturally; never truncates)
+        while(tooltipEl.firstChild) tooltipEl.removeChild(tooltipEl.firstChild);
+
+        var titleText = (tooltip.title && tooltip.title.length) ? String(tooltip.title[0] || '') : '';
+        if(titleText){
+          var titleDiv = document.createElement('div');
+          titleDiv.style.color = accent || '#eef1f3';
+          titleDiv.style.fontWeight = '700';
+          titleDiv.style.marginBottom = '6px';
+          titleDiv.textContent = titleText;
+          tooltipEl.appendChild(titleDiv);
+        }
+
+        var bodyLines = [];
+        if(tooltip.body && tooltip.body.length){
+          tooltip.body.forEach(function(b){
+            (b.lines || []).forEach(function(line){
+              var t = String(line || '').trim();
+              if(t) bodyLines.push(t);
+            });
+          });
+        }
+        if(bodyLines.length){
+          var bodyDiv = document.createElement('div');
+          bodyDiv.textContent = bodyLines.join('\n');
+          bodyDiv.style.whiteSpace = 'pre-wrap';
+          tooltipEl.appendChild(bodyDiv);
+        }
+
+        // Measure then clamp into the viewport
+        tooltipEl.style.left = '-9999px';
+        tooltipEl.style.top = '-9999px';
+        tooltipEl.style.opacity = '1';
+
+        var bb = tooltipEl.getBoundingClientRect();
+        var canvasRect = chart.canvas.getBoundingClientRect();
+        var rx = (chart.width ? (canvasRect.width / chart.width) : 1);
+        var ry = (chart.height ? (canvasRect.height / chart.height) : 1);
+        var caretX = canvasRect.left + (tooltip.caretX * rx);
+        var caretY = canvasRect.top + (tooltip.caretY * ry);
+
+        var margin = 12;
+        var left = caretX - (bb.width / 2);
+        var top = caretY - bb.height - 14;
+        if(top < margin) top = caretY + 14;
+
+        // Clamp to viewport edges
+        if(left < margin) left = margin;
+        if(left + bb.width > window.innerWidth - margin) left = window.innerWidth - margin - bb.width;
+        if(top + bb.height > window.innerHeight - margin) top = window.innerHeight - margin - bb.height;
+        if(top < margin) top = margin;
+
+        tooltipEl.style.left = left + 'px';
+        tooltipEl.style.top = top + 'px';
+        tooltipEl.style.opacity = '1';
+      }
 
       chartInstance = new Chart(el.getContext('2d'), {
         type: 'line',
@@ -154,7 +285,7 @@
               // Invisible hit-targets so clicks/taps on dots show a tooltip.
               label: 'milestones',
               type: 'scatter',
-              data: waypointNotes,
+              data: waypointNotes.concat(descentNotes),
               parsing: false,
               showLine: false,
               pointRadius: 10,
@@ -203,7 +334,8 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              enabled: true,
+              enabled: !isSmall,
+              external: isSmall ? smallScreenExternalTooltip : undefined,
               displayColors: false,
               backgroundColor: 'rgba(20,24,32,0.78)',
               borderColor: 'rgba(255,255,255,0.10)',
