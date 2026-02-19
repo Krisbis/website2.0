@@ -30,6 +30,9 @@
         try{ chartInstance.destroy(); }catch(e){}
         chartInstance = null;
       }
+      // Remove stale tooltip so it picks up correct sizing on resize
+      var oldTip = document.getElementById('dk-ext-tooltip');
+      if(oldTip) oldTip.parentNode.removeChild(oldTip);
 
       var accent = getCssVar('--accent', '#eef1f3');
       var gridColor = 'rgba(255,255,255,0.08)';
@@ -84,16 +87,29 @@
       var descentNotes = [
         {x: 10.2, y: 83,   title: 'cracks forming',         story: 'Soo what do i do now when metasploit modules don\'t work on a box no matter how hard i push the button?'},
         {x: 12.8, y: 72.7, title: 'the slide begins',       story: 'The hell is a buffer overflow? Why there is no GUI for msfvenom?'},
-        {x: 15.8, y: 58.3, title: 'brutal realization',     story: 'Crypto, reversing, writing exploits, DEEP knowledge of OS internals.. man there\'s so much to learn'},
+        {x: 15.8, y: 58.3, title: 'brutal realization',     story: 'Crypto, writing exploits, DEEP knowledge of OS internals.. man there\'s so much to learn'},
         {x: 19.2, y: 43.2, title: 'freefall',               story: 'Reading a CVE writeup with working exploit and understanding about 10% of it'},
-        {x: 23.3, y: 30.7, title: 'rock bottom approaches', story: 'Starting to question all prior "knowledge"'}
+        {x: 23.3, y: 30.7, title: 'rock bottom approaches', story: 'Soo "Reversing" is uploading a file to binaryninja and looking at the strings or staring the pseudocode until something looks like a password check? Right?'}
+      ];
+
+      // 3 grey ascent markers along the bezier from Valley of Despair → Slope of Enlightenment
+      var ascentColor = 'rgba(180,180,180,0.55)';
+      var ascentDefs = [
+        {x: 33, y: 25, color: ascentColor},
+        {x: 37, y: 29, color: ascentColor},
+        {x: 40, y: 33, color: ascentColor}
+      ];
+      var ascentNotes = [
+        {x: 33, y: 25, title: 'first glimmer',       story: 'Medium boxes start to make sense. Now i prefer nmap and manual enumeration over automated cannons'},
+        {x: 37, y: 29, title: 'steady grind',        story: 'Lin&WinPeas output starts to make more sense. Web app testing becomes fun (with the right tools)'},
+        {x: 40, y: 33, title: 'gaining traction',    story: 'Finding basic PrivEsc vectors becomes process instead of guess. Many techniques are still novel to me, but at least i know where to look \'em up'}
       ];
 
       var labels = [
         {x:8, y:86, text:'peak of "Mt. Stupid"', dx:-10, dy:-12},
-        {x:28,y:24, text:'valley of despair',    dx:12,   dy:18},
+        {x:25,y:18, text:'valley of despair',    dx:12,   dy:18},
         {x:58,y:60, text:'slope of enlightenment',dx:-10,   dy:38},
-        {x:88,y:78, text:'plateau of sustainability', dx:-210, dy:-22}
+        {x:88,y:76, text:'plateau of sustainability', dx:-210, dy:-22}
       ];
 
       var dkLabelsPlugin = {
@@ -119,7 +135,7 @@
             ctx.lineWidth = 1.5;
             roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
             ctx.fill(); ctx.stroke();
-            ctx.fillStyle = accent || '#eef1f3';
+            ctx.fillStyle = 'rgba(204,204,204,0.83)';
             ctx.fillText(text, boxX + padX, boxY + 18);
           });
           ctx.restore();
@@ -160,12 +176,24 @@
             ctx.strokeStyle = 'rgba(255,255,255,0.15)';
             ctx.stroke();
           });
+          // Grey ascent markers (smaller)
+          ascentDefs.forEach(function(p){
+            var px = xScale.getPixelForValue(p.x);
+            var py = yScale.getPixelForValue(p.y);
+            ctx.beginPath();
+            ctx.arc(px, py, 4, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.stroke();
+          });
           ctx.restore();
         }
       };
 
-      function getOrCreateSmallTooltip(){
-        var id = 'dk-small-tooltip';
+      function getOrCreateExternalTooltip(){
+        var id = 'dk-ext-tooltip';
         var tooltipEl = document.getElementById(id);
         if(tooltipEl) return tooltipEl;
 
@@ -177,19 +205,19 @@
         tooltipEl.style.opacity = '0';
         tooltipEl.style.pointerEvents = 'none';
         tooltipEl.style.zIndex = '9999';
-        tooltipEl.style.maxWidth = 'calc(100vw - 24px)';
-        tooltipEl.style.minWidth = '240px';
+        tooltipEl.style.maxWidth = isSmall ? 'calc(100vw - 24px)' : '320px';
+        tooltipEl.style.minWidth = isSmall ? '240px' : '180px';
 
         tooltipEl.style.padding = '12px 14px';
         tooltipEl.style.borderRadius = '12px';
         tooltipEl.style.border = '1px solid rgba(255,255,255,0.12)';
-        tooltipEl.style.background = 'rgba(20,24,32,0.92)';
+        tooltipEl.style.background = 'rgba(20,24,32,0.52)';
         tooltipEl.style.backdropFilter = 'blur(8px)';
         tooltipEl.style.boxShadow = '0 10px 28px rgba(0,0,0,0.45)';
 
-        tooltipEl.style.color = '#cfd6dc';
-        tooltipEl.style.fontFamily = '"JetBrains Mono", monospace';
-        tooltipEl.style.fontSize = '12px';
+        tooltipEl.style.color = 'rgba(180,185,190,0.7)';
+        tooltipEl.style.fontFamily = isSmall ? '"JetBrains Mono", monospace' : '"Helvetica Neue", Helvetica, Arial, sans-serif';
+        tooltipEl.style.fontSize = isSmall ? '11px' : '11.5px';
         tooltipEl.style.lineHeight = '1.35';
         tooltipEl.style.whiteSpace = 'normal';
         tooltipEl.style.wordBreak = 'break-word';
@@ -199,10 +227,10 @@
         return tooltipEl;
       }
 
-      function smallScreenExternalTooltip(context){
+      function externalTooltipHandler(context){
         var chart = context.chart;
         var tooltip = context.tooltip;
-        var tooltipEl = getOrCreateSmallTooltip();
+        var tooltipEl = getOrCreateExternalTooltip();
 
         if(!tooltip || tooltip.opacity === 0){
           tooltipEl.style.opacity = '0';
@@ -215,7 +243,7 @@
         var titleText = (tooltip.title && tooltip.title.length) ? String(tooltip.title[0] || '') : '';
         if(titleText){
           var titleDiv = document.createElement('div');
-          titleDiv.style.color = accent || '#eef1f3';
+          titleDiv.style.color = 'rgba(200,205,210,0.82)';
           titleDiv.style.fontWeight = '700';
           titleDiv.style.marginBottom = '6px';
           titleDiv.textContent = titleText;
@@ -285,7 +313,7 @@
               // Invisible hit-targets so clicks/taps on dots show a tooltip.
               label: 'milestones',
               type: 'scatter',
-              data: waypointNotes.concat(descentNotes),
+              data: waypointNotes.concat(descentNotes).concat(ascentNotes),
               parsing: false,
               showLine: false,
               pointRadius: 10,
@@ -334,8 +362,8 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              enabled: !isSmall,
-              external: isSmall ? smallScreenExternalTooltip : undefined,
+              enabled: false,
+              external: externalTooltipHandler,
               displayColors: false,
               backgroundColor: 'rgba(20,24,32,0.78)',
               borderColor: 'rgba(255,255,255,0.10)',
