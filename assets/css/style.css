@@ -105,35 +105,78 @@
   background: #8a020233;
   color: #fff;
 }
-/* Disable moving glow on sidebar to avoid perceived panel movement */
+/* Sidebar pseudo-elements disabled (flame glow handled by .ember-flame-container) */
 #about-side-nav::before, #about-side-nav::after {
   display: none !important;
   animation: none !important;
   opacity: 0 !important;
 }
-/* Create a local stacking context for social icons and allow embers behind them */
+/* Stacking: nav links and social icons above flame particles */
+#about-side-nav ul {
+  position: relative;
+  z-index: 1;
+}
 #about-side-nav .side-nav-social {
   position: relative;
   overflow: visible;
+  z-index: 1;
 }
 #about-side-nav .side-nav-social a {
   position: relative;
   z-index: 2;
 }
-/* Ember particles localized to the bottom social area */
-#about-side-nav .side-nav-social .ember-particle{
-  position:absolute;
-  left:0; bottom:0;
-  width:6px; height:6px;
-  border-radius:50%;
-  pointer-events:none;
-  z-index:0;
-  background: radial-gradient(circle, rgba(255,210,140,0.95) 0%, rgba(255,150,60,0.65) 45%, rgba(255,150,60,0) 70%);
-  filter: blur(1.1px) saturate(1.15);
-  animation-name: emberRise;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+/* Flame container: full-sidebar, clipped, behind all content */
+.ember-flame-container {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 0 18px 18px 0;
+}
+/* Warm base glow at the bottom of the sidebar */
+.ember-flame-container::before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 5%;
+  right: 5%;
+  height: 70px;
+  background: radial-gradient(ellipse at center bottom,
+    rgba(255,80,10,0.38) 0%,
+    rgba(255,60,10,0.14) 55%,
+    rgba(255,60,10,0) 100%);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: baseGlowPulse 3.5s ease-in-out infinite;
+}
+/* Flame core particles (large soft blobs) */
+.ember-flame-container .flame-core {
+  position: absolute;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  pointer-events: none;
   will-change: transform, opacity;
+  animation-timing-function: ease-out;
+}
+/* Ember particles (small rising dots, 3 depth tiers via inline styles) */
+.ember-flame-container .ember-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation-timing-function: linear;
+}
+/* Spark particles (tiny, bright, fast) */
+.ember-flame-container .spark-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation-timing-function: ease-out;
+}
+/* Disable flames when user prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ember-flame-container { display: none !important; }
 }
 @media (max-width: 600px) {
   .autograph-painter {
@@ -194,63 +237,70 @@
   overflow: visible; /* allow glow to extend slightly outside */
 }
 
-/* Smoldering glow along the left edge of the sidebar */
-#about-side-nav::before{
-  content:"";
-  position:absolute;
-  top:0; bottom:0; left:-6px;
-  width:14px;
-  pointer-events:none;
-  /* warm glow fading outwards */
-  background: radial-gradient(closest-side, rgba(255,140,60,0.55), rgba(255,140,60,0.15) 60%, rgba(255,140,60,0) 100%);
-  filter: blur(10px) saturate(1.25);
-  opacity: 0.38;
-  animation: smolderPulse 2.6s ease-in-out infinite;
+/* ── Flame keyframes ────────────────────────────────────────── */
+
+/* Base glow pulse at the bottom of the sidebar */
+@keyframes baseGlowPulse {
+  0%, 100% { opacity: 0.45; transform: scaleX(1); }
+  50%      { opacity: 0.75; transform: scaleX(1.06); }
 }
 
-/* Occasional ember flicker near the bottom-left */
-#about-side-nav::after{
-  content:"";
-  position:absolute;
-  left:-10px; bottom:12px;
-  width:28px; height:42px;
-  pointer-events:none;
-  background: radial-gradient(circle at 50% 70%, rgba(255,190,90,0.45) 0%, rgba(255,120,40,0.25) 40%, rgba(255,120,40,0) 70%);
-  filter: blur(12px) saturate(1.2);
-  opacity: 0.32;
-  animation: emberFlicker 1.9s ease-in-out infinite;
+/* Flame core: slow rise with organic sway and scale morphing */
+@keyframes flameRise {
+  0%   { transform: translate(0, 0) scaleX(1) scaleY(1); opacity: 0; }
+  12%  { opacity: 0.38; }
+  35%  { transform:
+           translate(var(--ember-sway, 5px), calc(-0.35 * var(--ember-rise, 100px)))
+           scaleX(1.1) scaleY(1.05);
+         opacity: 0.32; }
+  65%  { transform:
+           translate(calc(var(--ember-driftX, 0px) * 0.65), calc(-0.65 * var(--ember-rise, 100px)))
+           scaleX(0.88) scaleY(1.1);
+         opacity: 0.16; }
+  100% { transform:
+           translate(var(--ember-driftX, 0px), calc(-1 * var(--ember-rise, 100px)))
+           scaleX(0.6) scaleY(0.8);
+         opacity: 0; }
 }
 
-@keyframes smolderPulse{
-  0%, 100% { opacity: 0.34; transform: scaleY(1); }
-  50% { opacity: 0.62; transform: scaleY(1.025); }
+/* Ember: rise with sinusoidal horizontal sway for organic motion */
+@keyframes emberRiseSway {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  10%  { opacity: var(--ember-peak-opacity, 0.55); }
+  30%  { transform:
+           translate(
+             calc(var(--ember-driftX, 6px) * 0.3 + var(--ember-sway, 3px)),
+             calc(-0.3 * var(--ember-rise, 80px))
+           ); }
+  55%  { transform:
+           translate(
+             calc(var(--ember-driftX, 6px) * 0.55 - var(--ember-sway, 3px) * 0.6),
+             calc(-0.55 * var(--ember-rise, 80px))
+           );
+         opacity: 0.35; }
+  80%  { transform:
+           translate(
+             calc(var(--ember-driftX, 6px) * 0.8 + var(--ember-sway, 3px) * 0.3),
+             calc(-0.8 * var(--ember-rise, 80px))
+           );
+         opacity: 0.18; }
+  100% { transform:
+           translate(var(--ember-driftX, 6px), calc(-1 * var(--ember-rise, 80px)));
+         opacity: 0; }
 }
 
-@keyframes emberFlicker{
-  0%, 100% { opacity: 0.28; transform: translateY(0); }
-  35% { opacity: 0.5; transform: translateY(-2px); }
-  65% { opacity: 0.36; transform: translateY(1px); }
-}
-
-/* Floating ember particles (JS-generated) */
-#about-side-nav .ember-particle{
-  position:absolute;
-  left:0; bottom:0;
-  width:6px; height:6px;
-  border-radius:50%;
-  pointer-events:none;
-  background: radial-gradient(circle, rgba(255,210,140,0.95) 0%, rgba(255,150,60,0.65) 45%, rgba(255,150,60,0) 70%);
-  filter: blur(1.1px) saturate(1.15);
-  animation-name: emberRise;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-@keyframes emberRise{
-  0%   { transform: translate(0, 0); opacity: 0.0; }
-  10%  { opacity: 0.55; }
-  60%  { opacity: 0.45; }
-  100% { transform: translate(var(--ember-driftX, 6px), calc(-1 * var(--ember-rise, 60px))); opacity: 0.0; }
+/* Spark: fast rise, bright flash, quick fadeout */
+@keyframes sparkRise {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+  8%   { opacity: 0.9; }
+  35%  { transform:
+           translate(calc(var(--ember-driftX, 4px) * 0.35), calc(-0.35 * var(--ember-rise, 150px)))
+           scale(0.8);
+         opacity: 0.65; }
+  100% { transform:
+           translate(var(--ember-driftX, 4px), calc(-1 * var(--ember-rise, 150px)))
+           scale(0.12);
+         opacity: 0; }
 }
 #about-side-nav ul {
   list-style: none;
