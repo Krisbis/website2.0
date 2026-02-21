@@ -1,0 +1,24 @@
+# xorxorplain
+
+> Personal cybersecurity portfolio and writeup site.
+
+## About
+
+xorxorplain is a personal website showcasing cybersecurity projects, CTF writeups, and professional experience. The site features a hacker-themed aesthetic with a terminal emulator, glitch effects, and glassy UI elements.
+
+## Pages
+
+- [Home](https://xorxorplain.com/index.html): Landing page with an interactive bash terminal emulator
+- [About](https://xorxorplain.com/about.html): Background, experience, certifications, and skills
+- [Projects](https://xorxorplain.com/projects/projects.html): CTF writeups and security project cards
+- [Blog](https://xorxorplain.com/blog/index.html): Blog posts
+
+## Project Writeups
+
+- [Pyrat](https://xorxorplain.com/projects/pyrat.html): Easy Linux CTF writeup — Python exploitation
+- [Lookup](https://xorxorplain.com/projects/lookup.html): Easy Linux & Web CTF writeup — SSRF and LFI
+- [Hammer](https://xorxorplain.com/projects/hammer.html): Intermediate Web CTF writeup — auth bypass and API abuse
+
+## Contact
+
+- PGP public key available at [/pgp_public.asc](https://xorxorplain.com/pgp_public.asc)

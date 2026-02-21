@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} — Writeup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+  <!-- Background video for writeup page -->
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/projects_background.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="../blog/index.html">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <!-- Back link -->
+      <a href="projects.html" class="writeup-back" aria-label="Back to projects">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Projects</span>
+      </a>
+
+      <!-- Header -->
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--{{DIFFICULTY_CLASS}}">{{DIFFICULTY}}</span>
+          <span class="writeup-env">{{ENVIRONMENT}}</span>
+          <span class="writeup-date">{{DATE}}</span>
+        </div>
+        <h1 class="writeup-title">{{TITLE}}</h1>
+      </header>
+
+      <hr class="writeup-divider">
+
+      <!-- Writeup body (rendered from Markdown) -->
+      <article class="writeup-body">
+        {{CONTENT}}
+      </article>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
+</body>
+</html>

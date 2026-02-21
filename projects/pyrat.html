@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pyrat — Writeup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/projects_background.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="../blog/index.html">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <a href="projects.html" class="writeup-back" aria-label="Back to projects">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Projects</span>
+      </a>
+
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--easy">Easy</span>
+          <span class="writeup-env">Linux</span>
+          <span class="writeup-date">21/02/2026</span>
+        </div>
+        <h1 class="writeup-title">Pyrat</h1>
+      </header>
+
+      <hr class="writeup-divider">
+
+      <article class="writeup-body">
+        <h2>Overview</h2>
+        <p>Pyrat is an easy-difficulty Linux machine that focuses on Python-based exploitation techniques. The box involves enumerating a custom Python web application and leveraging its vulnerabilities to gain initial access.</p>
+
+        <h2>Reconnaissance</h2>
+        <h3>Nmap Scan</h3>
+        <pre><code>$ nmap -sC -sV -oN nmap/pyrat 10.10.11.xx
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1
+80/tcp open  http    Python/3.11 aiohttp
+8000/tcp open  http   SimpleHTTPServer 0.6</code></pre>
+        <p>Initial scan reveals SSH, a Python aiohttp web server on port 80, and a SimpleHTTPServer on port 8000.</p>
+
+        <h3>Web Enumeration</h3>
+        <p>Browsing to port 8000 reveals a directory listing with exposed Python source files. The main application source leaks credentials hardcoded in configuration.</p>
+
+        <h2>Exploitation</h2>
+        <h3>Initial Access</h3>
+        <p>Using the discovered credentials, we can authenticate to the aiohttp application's admin panel. The admin panel contains a file upload feature vulnerable to path traversal.</p>
+        <pre><code>$ curl -X POST http://10.10.11.xx/upload \
+  -H "Cookie: session=admin_token" \
+  -F "file=@shell.py;filename=../../app/routes.py"</code></pre>
+
+        <h3>Privilege Escalation</h3>
+        <p>Once on the box, we find a SUID binary that loads Python modules from a writable path:</p>
+        <pre><code>$ find / -perm -4000 -type f 2>/dev/null
+/opt/checker
+$ strings /opt/checker | grep import
+import rat_config</code></pre>
+        <p>By creating a malicious <code>rat_config.py</code> in the Python path, we hijack the import and get root execution.</p>
+
+        <h2>Flags</h2>
+        <ul>
+          <li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+          <li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+        </ul>
+
+        <h2>Lessons Learned</h2>
+        <p>This box highlights the dangers of running development servers in production, hardcoded credentials, and unsafe SUID binaries that rely on Python imports from writable paths.</p>
+      </article>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
+</body>
+</html>
