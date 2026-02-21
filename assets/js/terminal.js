@@ -27,7 +27,7 @@
     'blog': { type: 'dir', children: [] },
 
     // sample files (you can edit these)
-    'readme.txt': { type: 'file', content: 'Welcome to xorxorplain.\nUse `help` to see commands.', size: 48, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
+    'readme.txt': { type: 'file', content: 'Welcome!\nUse `help` to see commands.', size: 48, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     '.secret': { type: 'file', content: 'top-secret', size: 10, mtime: Date.now() - 1000*60*60, owner: 'xorxor' },
     '.key': { type: 'file', content: 'XorAsOTPreliesTo=1)TrulyRandomKey2)KeyLength=MessageLength3)KeyIsUsedOnlyOnce.ThisKeyFailsPointNo.1&2....DoesThisKeyFindItsLock?Hint__:WebsitesGreetsYouWithWhatDevelopedElementWhenYourConnectionIsSlow', size: 128, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     'cat.txt': {
@@ -89,11 +89,18 @@
   const commands = {
     help() {
       return [
-        'Available commands: help, whoami, date, pwd, ls, cat, cd, touch, write, rm, projects, contact, echo, clear'
+        'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, projects, contact, echo, clear'
       ];
     },
     whoami(){ return ['you@neon: a curious mind'] },
+    id(){ return ['uid=1000(user) gid=1000(user) groups=1000(user)']; },
     date(){ return [new Date().toString()] },
+    uname(args){
+      if(args && (args.includes('-a') || args.includes('--all'))){
+        return ['Linux neon 6.6.0-xorxor #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux'];
+      }
+      return ['Linux'];
+    },
 
     pwd(){ return ['~'] },
 
@@ -153,7 +160,7 @@
       return [`cd: ${name}: Directory exists but no action defined`];
     },
     projects(){ return ['Project A - neat project', 'Project B - another cool project'] },
-    contact(){ return ['email: hello@example.com', 'twitter: @xorxorplain'] },
+    contact(){ return ['email: xorxorplain@proton.me', 'PGP: You can download my public key from the root of the website (xorxorplain.com/pgp_public.asc)'] },
     echo(args){ return [args.join(' ')] },
 
     touch(args){
@@ -287,6 +294,12 @@
       return;
     }
 
+    if(cmd === 'sudo'){
+      appendLine('user is not in the sudoers file.');
+      appendLine('This incident will be reported.');
+      return;
+    }
+
     const fn = commands[cmd];
     if(fn){
       const res = fn(args);
@@ -348,6 +361,56 @@
     if(e.key === 'c' && e.ctrlKey){ // emulate ctrl+c
       appendLine('^C');
       input.value = '';
+    }
+    // Tab completion: commands (first word) or filenames (subsequent words)
+    if(e.key === 'Tab'){
+      e.preventDefault();
+      const val = input.value;
+      const cursorPos = input.selectionStart;
+      const before = val.slice(0, cursorPos);
+      const after = val.slice(cursorPos);
+      const parts = before.split(/\s+/);
+      const partial = (parts[parts.length - 1] || '').toLowerCase();
+
+      if(partial.length === 0) return;
+
+      let candidates;
+      if(parts.length <= 1){
+        // completing a command name
+        const cmdNames = Object.keys(commands).concat(['clear','sudo']);
+        candidates = cmdNames.filter(c => c.startsWith(partial));
+      } else {
+        // completing a filename/dirname from the filesystem
+        const fsNames = Object.keys(fs);
+        candidates = fsNames.filter(n => n.toLowerCase().startsWith(partial));
+      }
+
+      if(candidates.length === 1){
+        // single match — complete it
+        const prefix = before.slice(0, before.length - parts[parts.length - 1].length);
+        input.value = prefix + candidates[0] + after;
+        input.selectionStart = input.selectionEnd = (prefix + candidates[0]).length;
+      } else if(candidates.length > 1){
+        // find longest common prefix among candidates
+        let common = candidates[0];
+        for(let ci = 1; ci < candidates.length; ci++){
+          while(!candidates[ci].toLowerCase().startsWith(common.toLowerCase())){
+            common = common.slice(0, -1);
+          }
+        }
+        if(common.length > partial.length){
+          // extend to common prefix (preserve original casing of the first match)
+          const prefix = before.slice(0, before.length - parts[parts.length - 1].length);
+          const match = candidates.find(c => c.toLowerCase().startsWith(common.toLowerCase())) || common;
+          const completed = match.slice(0, common.length);
+          input.value = prefix + completed + after;
+          input.selectionStart = input.selectionEnd = (prefix + completed).length;
+        } else {
+          // show all candidates
+          appendLine('user@neon:~$ ' + val, 'user-cmd');
+          appendLine(candidates.join('  '));
+        }
+      }
     }
   });
 
