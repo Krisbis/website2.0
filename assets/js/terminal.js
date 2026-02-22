@@ -27,7 +27,7 @@
     'blog': { type: 'dir', children: [] },
 
     // sample files (you can edit these)
-    'readme.txt': { type: 'file', content: 'Welcome!\nUse `help` to see commands.', size: 48, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
+    'readme.txt': { type: 'file', content: 'Welcome!\nCan you find the key?', size: 'Welcome!\nCan you find the key?'.length, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     '.secret': { type: 'file', content: 'top-secret', size: 10, mtime: Date.now() - 1000*60*60, owner: 'xorxor' },
     '.key': { type: 'file', content: 'XorAsOTPreliesTo=1)TrulyRandomKey2)KeyLength=MessageLength3)KeyIsUsedOnlyOnce.ThisKeyFailsPointNo.1&2....DoesThisKeyFindItsLock?Hint__:WebsitesGreetsYouWithWhatDevelopedElementWhenYourConnectionIsSlow', size: 128, mtime: Date.now() - 1000*60*60*24, owner: 'xorxor' },
     'cat.txt': {

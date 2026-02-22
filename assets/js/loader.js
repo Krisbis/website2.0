@@ -10,7 +10,7 @@
       'Testing in prod...',
       '"I will now inject the shellcode", said the doctor\n\n"Wait what?", I queried politely. ',
       'Data breach = decentralized surprise backup',
-      'Removing -rf /',
+      'Removing -rf / -fr -fr -nocap',
       'Discombobulating...',
       'Bypassing my own firewall...',
       'Cant get hacked, if you dont give anyone a computer',
