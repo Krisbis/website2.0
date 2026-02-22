@@ -2,7 +2,6 @@ backend:
   name: github
   repo: krisbis/website2.0
   branch: main
-  client_id: Ov23li42VKSpWPlOyVwH
 
 media_folder: "assets/images/writeups"
 public_folder: "/assets/images/writeups"
