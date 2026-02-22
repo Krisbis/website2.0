@@ -17,6 +17,7 @@
       <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
     </div>
   </div>
+  <!-- Background video for writeup page -->
   <div class="bg-video-wrapper" aria-hidden="true">
     <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
       <source src="../assets/videos/projects_background.mp4" type="video/mp4">
@@ -43,11 +44,13 @@
 
   <main class="writeup-page">
     <div class="writeup-container glass-content">
+      <!-- Back link -->
       <a href="projects.html" class="writeup-back" aria-label="Back to projects">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
         <span>Projects</span>
       </a>
 
+      <!-- Header -->
       <header class="writeup-header">
         <div class="writeup-meta">
           <span class="writeup-badge writeup-badge--easy">Easy</span>
@@ -57,6 +60,7 @@
         <h1 class="writeup-title">Lookup</h1>
       </header>
 
+      <!-- Tags -->
       <div class="writeup-tags">
         <span class="writeup-tag">SSRF</span>
         <span class="writeup-tag">LFI</span>
@@ -71,47 +75,46 @@
 
       <hr class="writeup-divider">
 
+      <!-- Writeup body (rendered from Markdown) -->
       <article class="writeup-body">
         <h2>Overview</h2>
-        <p>Lookup is an easy-rated machine combining Linux and web attack vectors. It features a web application with a vulnerable lookup/search feature that can be abused for server-side request forgery and local file inclusion.</p>
-
-        <h2>Reconnaissance</h2>
-        <h3>Nmap Scan</h3>
-        <pre><code>$ nmap -sC -sV -oN nmap/lookup 10.10.11.xx
+<p>Lookup is an easy-rated machine combining Linux and web attack vectors. It features a web application with a vulnerable lookup/search feature that can be abused for server-side request forgery and local file inclusion.</p>
+<h2>Reconnaissance</h2>
+<h3>Nmap Scan</h3>
+<pre><code>$ nmap -sC -sV -oN nmap/lookup 10.10.11.xx
 PORT   STATE SERVICE VERSION
 22/tcp open  ssh     OpenSSH 8.4p1
 80/tcp open  http    nginx 1.18.0
-3000/tcp open http   Node.js Express</code></pre>
-        <p>We find SSH, an nginx reverse proxy on port 80, and a Node.js Express application on port 3000.</p>
+3000/tcp open http   Node.js Express
+</code></pre>
+<p>We find SSH, an nginx reverse proxy on port 80, and a Node.js Express application on port 3000.</p>
+<h3>Web Application</h3>
+<p>The application provides a &quot;lookup&quot; feature that fetches and displays content from user-supplied URLs. This is a classic SSRF vector.</p>
+<h2>Exploitation</h2>
+<h3>SSRF to Internal Services</h3>
+<p>By pointing the lookup feature at internal addresses, we can reach services not exposed externally:</p>
+<pre><code>GET /lookup?url=http://127.0.0.1:3000/admin/config HTTP/1.1
+Host: 10.10.11.xx
+</code></pre>
+<p>The internal admin config endpoint reveals database credentials and API keys.</p>
+<h3>Local File Inclusion</h3>
+<p>The lookup handler also accepts <code>file://</code> URIs:</p>
+<pre><code>GET /lookup?url=file:///etc/passwd HTTP/1.1
+</code></pre>
+<h3>Privilege Escalation</h3>
+<p>With SSH access obtained through leaked credentials, we discover a cron job running as root that processes files from a user-writable directory:</p>
+<pre><code>$ cat /etc/cron.d/backup
+*/5 * * * * root /opt/backup.sh
+</code></pre>
+<p>By injecting a symlink into the backup source directory, we can read the root flag or escalate to a root shell.</p>
+<h2>Flags</h2>
+<ul>
+<li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+<li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
+</ul>
+<h2>Lessons Learned</h2>
+<p>Never trust user-supplied URLs in server-side fetch operations. Always validate and restrict URL schemes, and use allowlists for internal network access.</p>
 
-        <h3>Web Application</h3>
-        <p>The application provides a "lookup" feature that fetches and displays content from user-supplied URLs. This is a classic SSRF vector.</p>
-
-        <h2>Exploitation</h2>
-        <h3>SSRF to Internal Services</h3>
-        <p>By pointing the lookup feature at internal addresses, we can reach services not exposed externally:</p>
-        <pre><code>GET /lookup?url=http://127.0.0.1:3000/admin/config HTTP/1.1
-Host: 10.10.11.xx</code></pre>
-        <p>The internal admin config endpoint reveals database credentials and API keys.</p>
-
-        <h3>Local File Inclusion</h3>
-        <p>The lookup handler also accepts <code>file://</code> URIs:</p>
-        <pre><code>GET /lookup?url=file:///etc/passwd HTTP/1.1</code></pre>
-
-        <h3>Privilege Escalation</h3>
-        <p>With SSH access obtained through leaked credentials, we discover a cron job running as root that processes files from a user-writable directory:</p>
-        <pre><code>$ cat /etc/cron.d/backup
-*/5 * * * * root /opt/backup.sh</code></pre>
-        <p>By injecting a symlink into the backup source directory, we can read the root flag or escalate to a root shell.</p>
-
-        <h2>Flags</h2>
-        <ul>
-          <li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
-          <li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
-        </ul>
-
-        <h2>Lessons Learned</h2>
-        <p>Never trust user-supplied URLs in server-side fetch operations. Always validate and restrict URL schemes, and use allowlists for internal network access.</p>
       </article>
     </div>
   </main>
