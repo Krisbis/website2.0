@@ -1,6 +1,7 @@
 backend:
   name: git-gateway
   branch: main
+  site_domain: papaya-starlight-c97783.netlify.app
 
 media_folder: "assets/images/writeups"
 public_folder: "/assets/images/writeups"
