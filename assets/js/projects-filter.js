@@ -91,13 +91,20 @@
     update();
   }
 
+  /* ── escape HTML entities ── */
+  function escTag(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
   /* ── render selected tags as removable pills in the search bar ── */
   function renderSelectedTags() {
     selectedTagsEl.innerHTML = '';
     selectedTags.forEach(function (tag) {
       var pill = document.createElement('span');
       pill.className = 'selected-tag-pill';
-      pill.innerHTML = tag + '<button type="button" class="selected-tag-remove" aria-label="Remove ' + tag + '">&times;</button>';
+      pill.innerHTML = escTag(tag) + '<button type="button" class="selected-tag-remove" aria-label="Remove ' + escTag(tag) + '">&times;</button>';
       pill.querySelector('.selected-tag-remove').addEventListener('click', function (e) {
         e.stopPropagation();
         toggleTag(tag);

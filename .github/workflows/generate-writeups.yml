@@ -7,6 +7,7 @@ on:
       - 'projects/writeups/**'
       - 'templates/writeup-template.html'
       - 'generate.js'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -24,7 +25,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run generator
         run: node generate.js

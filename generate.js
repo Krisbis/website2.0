@@ -15,6 +15,17 @@ const path = require('path');
 const matter = require('gray-matter');
 const { marked } = require('marked');
 
+// Sanitise rendered HTML – strip <script>, event handlers, etc.
+function sanitiseHtml(html) {
+  // Remove <script> blocks
+  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove event handler attributes (onerror, onclick, onload, etc.)
+  html = html.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  // Remove javascript: URIs in href/src/action
+  html = html.replace(/(href|src|action)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '$1=""');
+  return html;
+}
+
 // ── paths ──────────────────────────────────────────────────────
 const ROOT         = __dirname;
 const WRITEUPS_DIR = path.join(ROOT, 'projects', 'writeups');
@@ -94,7 +105,7 @@ function generateWriteupPages(writeups) {
 
   writeups.forEach(function (w) {
     var html = template;
-    var renderedBody = marked.parse(w.body);
+    var renderedBody = sanitiseHtml(marked.parse(w.body));
     var tagsHtml = w.tagsDisplay.map(function (t) {
       return '<span class="writeup-tag">' + escapeHtml(t) + '</span>';
     }).join('\n        ');
@@ -121,7 +132,7 @@ function buildCardHtml(w) {
   return '      <a href="' + w.slug + '.html" class="previewCard"\n' +
          '         data-title="' + w.slug + '"\n' +
          '         data-difficulty="' + difficultyClass(w.difficulty) + '"\n' +
-         '         data-tags="' + w.tags.join(',') + '"\n' +
+         '         data-tags="' + w.tags.map(escapeHtml).join(',') + '"\n' +
          '         data-date="' + w.date + '">\n' +
          '        <img src="' + escapeHtml(w.image) + '" class="backdrop" alt="' + escapeHtml(w.imageAlt) + '" />\n' +
          '        <div class="card-date">' + w.dateDisplay + '</div>\n' +
