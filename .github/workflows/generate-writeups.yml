@@ -1,0 +1,43 @@
+name: Generate Writeups
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/writeups/**'
+      - 'templates/writeup-template.html'
+      - 'generate.js'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run generator
+        run: node generate.js
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add projects/*.html
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-generate writeup pages [skip ci]"
+            git push
+          fi

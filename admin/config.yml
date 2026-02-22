@@ -1,0 +1,61 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/images/writeups"
+public_folder: "/assets/images/writeups"
+
+collections:
+  - name: "writeups"
+    label: "Writeups"
+    folder: "projects/writeups"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+        hint: "Box/challenge name (e.g. Pyrat)"
+
+      - label: "Difficulty"
+        name: "difficulty"
+        widget: "select"
+        options:
+          - { label: "Easy", value: "Easy" }
+          - { label: "Medium", value: "Medium" }
+          - { label: "Hard", value: "Hard" }
+          - { label: "Insane", value: "Insane" }
+
+      - label: "Environment"
+        name: "environment"
+        widget: "string"
+        hint: "e.g. Linux, Web, Linux & Web, Windows"
+
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        hint: "TTPs, tools, technologies (e.g. ssrf, python, nmap)"
+
+      - label: "Card Image URL"
+        name: "image"
+        widget: "string"
+        hint: "URL for the project card background image"
+
+      - label: "Card Image Alt"
+        name: "image_alt"
+        widget: "string"
+        default: "Card art"
+        required: false
+
+      - label: "Date"
+        name: "date"
+        widget: "datetime"
+        format: "YYYY-MM-DD"
+        date_format: "DD/MM/YYYY"
+        time_format: false
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"

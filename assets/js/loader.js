@@ -13,7 +13,7 @@
       'Removing -rf / -fr -fr -nocap',
       'Discombobulating...',
       'Bypassing my own firewall...',
-      'Cant get hacked, if you dont give anyone a computer',
+      'Cant get hacked, if you dont give anyone a computer...',
       'Stocking up caffeine...',
       'Feeling nauseous due to caffeine...',
       'Establishing secure connection to my mom\n\n\n\'s basement server...',
