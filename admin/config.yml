@@ -2,6 +2,9 @@ backend:
   name: github
   repo: krisbis/website2.0
   branch: main
+  client_id: Ov23li42VKSpWPlOyVwH
+  auth_endpoint: https://api.netlify.com/auth/done  # Netlify auth callback url for completing oauth flow
+
 
 media_folder: "assets/images/writeups"
 public_folder: "/assets/images/writeups"
