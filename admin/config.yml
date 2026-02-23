@@ -2,6 +2,7 @@ backend:
   name: github
   repo: krisbis/website2.0
   branch: main
+  auth_url: https://xorxor-decap-oauth.krizudee.workers.dev/auth
 
 media_folder: "assets/images/writeups"
 public_folder: "/assets/images/writeups"

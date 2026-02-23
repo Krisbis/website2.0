@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Content Manager</title>
   <style>
-    /* Hide Decap branding, match site dark theme */
     body { background: #0a0c10; }
   </style>
 </head>
 <body>
+  <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
   <script>
+    if (window.DecapCMS) {
+      window.DecapCMS.init();
+    } else {
+      console.error("Decap CMS did not load.");
+    }
   </script>
-    <script src="https://unpkg.com/decap-cms@^3/dist/decap-cms.js"></script>
 </body>
 </html>
