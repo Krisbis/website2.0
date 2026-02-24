@@ -1,14 +1,36 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Content Manager</title>
   <style>
-    body { background: #0a0c10; }
+    body {
+      background: #0a0c10;
+    }
   </style>
 </head>
+
 <body>
   <script src="https://cdn.jsdelivr.net/npm/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 </body>
+
 </html>
+<!-- Okay so this part was excruciating to get to work. I created github OAuth app, deployed cloudflare worker to act as a proxy (confidential client) for authentication. I got the oauth flow working, but Decap just stood there frozen, not letting me in. Turns out i tried to just pass the access token directly, without giving decap the steps it expects. -->
+<!--
+Flow goes like this with Decap CMS & external OAuth provider:
+Step 1 — The popup announces itself to the parent window:
+popup → parent: "authorizing:github"
+
+Step 2 — Decap acknowledges:
+parent → popup: (acknowledgment message containing its origin)
+
+Step 3 — The popup sends the token back, using the origin it just received:
+popup → parent: "authorization:github:success:{"token":"gho_xxx","provider":"github"}"
+
+(The "popup" here refers to the browser popup window that opens during login,
+which loads pages served by the Cloudflare Worker. The postMessage handshake 
+happens between that popup window and the main Decap tab in the browser.)
+
+So yeah.. I was rawdogging the last step, just sending the token without waiting for the acknowledgment. Took me & Claude way too long to figure that out, but hey, it works now! -->
