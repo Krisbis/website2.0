@@ -23,14 +23,20 @@ Flow goes like this with Decap CMS & external OAuth provider:
 Step 1 — The popup announces itself to the parent window:
 popup → parent: "authorizing:github"
 
+Decap is listening for exactly this string. When it receives it, it knows the OAuth popup has finished and is ready to hand over a token. It then sends back an acknowledgment to the popup.
+
 Step 2 — Decap acknowledges:
 parent → popup: (acknowledgment message containing its origin)
 
+Decap is listening for exactly this string. When it receives it, it knows the OAuth popup has finished and is ready to hand over a token. It then sends back an acknowledgment to the popup.
+
 Step 3 — The popup sends the token back, using the origin it just received:
 popup → parent: "authorization:github:success:{"token":"gho_xxx","provider":"github"}"
+
+Using message.origin from the acknowledgment as the target is also important — it's how Decap validates the response is going to the right place.
 
 (The "popup" here refers to the browser popup window that opens during login,
 which loads pages served by the Cloudflare Worker. The postMessage handshake 
 happens between that popup window and the main Decap tab in the browser.)
 
-So yeah.. I was rawdogging the last step, just sending the token without waiting for the acknowledgment. Took me & Claude way too long to figure that out, but hey, it works now! -->
+So yeah.. I was rawdogging the last step, just sending the token - since i didn't go through the step 1, Decap never set the listener for step 3 resulting in nothing happening. Took me & Claude way too long to figure that out, but hey, it works now! -->
