@@ -89,7 +89,7 @@
   const commands = {
     help() {
       return [
-        'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, projects, contact, echo, clear'
+        'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, theme, projects, contact, echo, clear'
       ];
     },
     whoami(){ return ['you@neon: a curious mind'] },
@@ -205,6 +205,48 @@
       delete fs[name];
       saveFs();
       return [`removed ${name}`];
+    },
+
+    theme(args){
+      if(!args || args.length === 0){
+        return [
+          'usage: theme <hex colour>',
+          'example: theme #FF0000',
+          'Accepts 3 or 6 digit hex with or without #.',
+          'Use "theme reset" to restore default.'
+        ];
+      }
+      let raw = args[0].replace(/^#/, '');
+
+      if(raw.toLowerCase() === 'reset') raw = 'D7DCE6';   // default white-ish
+
+      // expand shorthand (#F00 → FF0000)
+      if(/^[0-9a-fA-F]{3}$/.test(raw)){
+        raw = raw[0]+raw[0]+raw[1]+raw[1]+raw[2]+raw[2];
+      }
+
+      if(!/^[0-9a-fA-F]{6}$/.test(raw)){
+        return ['theme: invalid hex colour. Use format #RRGGBB or #RGB.'];
+      }
+
+      const r = parseInt(raw.substring(0,2), 16);
+      const g = parseInt(raw.substring(2,4), 16);
+      const b = parseInt(raw.substring(4,6), 16);
+
+      // find terminal centre on screen as ripple origin
+      const termEl = document.querySelector('.terminal-card') || document.getElementById('terminal');
+      let ox = window.innerWidth / 2, oy = window.innerHeight / 2;
+      if(termEl){
+        const rect = termEl.getBoundingClientRect();
+        ox = rect.left + rect.width / 2;
+        oy = rect.top  + rect.height / 2;
+      }
+
+      if(typeof window.__duneColorRipple === 'function'){
+        window.__duneColorRipple(ox, oy, {r:r, g:g, b:b});
+      }
+
+      return [`theme set to #${raw.toUpperCase()}`];
     }
   };
 

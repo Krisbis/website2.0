@@ -920,6 +920,16 @@ body {
 }
 .bg-controls input[type=range]{ width:120px; }
 
+/* ── Dune-lines canvas background (homepage) ─────────── */
+.bg-dunes{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:#000;
+  display:block;
+}
+/* ────────────────────────────────────────────────────── */
 
 .hero{min-height:85vh; display:flex; align-items:center; margin-top:12px}
 .accent{color:var(--accent);font-family:'Share Tech Mono', monospace}

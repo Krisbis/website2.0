@@ -3,8 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; frame-ancestors 'none';" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
     <meta name="description" content="Classy hacker vibes homepage with an emulated bash terminal" />
-    <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
     <title>Homepage</title>
 
     <!-- Google Fonts: Inter (UI) + JetBrains Mono (code) -->
@@ -25,16 +28,9 @@
                 <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
             </div>
         </div>
-    <!-- Background video -->
-    <!-- BG-video created by: saadelm - https://pixabay.com/videos/glitch-transition-overlay-167780/ -->
-    <div class="bg-video-wrapper" aria-hidden="true">
-        <video id="bgVideo" class="bg-video" autoplay muted loop playsinline preload="auto">
-            <source src="assets/videos/background.mp4" type="video/mp4">
-            <!-- fallback: silent poster or image -->
-        </video>
-        <!-- translucent overlay -->
-        <div id="bgOverlay" class="bg-overlay"></div>
-    </div>
+    <!-- Animated dune-lines background -->
+    <canvas id="duneCanvas" class="bg-dunes" aria-hidden="true"></canvas>
+
     <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4" aria-label="Main navigation">
         <div class="container-fluid">
             <a class="navbar-brand autograph autograph-painter p-0" href="index.html">xorxorplain</a>
@@ -88,25 +84,13 @@
     <script src="assets/js/terminal.js"></script>
     <script src="assets/js/title-glitch.js"></script>
     <script src="assets/js/loader.js"></script>
+    <script src="assets/js/dunes.js"></script>
 
-        <!-- Background overlay controls -->
-        <div id="bgControls" class="bg-controls" aria-hidden="false" title="Background overlay opacity">
-            <label for="bgOpacityRange" class="visually-hidden">Background overlay opacity</label>
-            <input id="bgOpacityRange" type="range" min="0" max="1" step="0.01" value="0.35" />
-        </div>
 
-        <script>
-            // wire background opacity control
-            (function(){
-                const range = document.getElementById('bgOpacityRange');
-                const overlay = document.getElementById('bgOverlay');
-                if(!range || !overlay) return;
-                // initialize CSS variable
-                const setAlpha = v => document.documentElement.style.setProperty('--bg-overlay-alpha', v);
-                setAlpha(range.value);
-                range.addEventListener('input', (e)=>{ setAlpha(e.target.value); });
-            })();
-        </script>
 
+    <script>
+        // set current year
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
