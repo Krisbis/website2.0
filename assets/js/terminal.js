@@ -159,7 +159,7 @@
       }
       return [`cd: ${name}: Directory exists but no action defined`];
     },
-    projects(){ return ['Project A - neat project', 'Project B - another cool project'] },
+    projects(){ return ['Hammer - Medium / Web', 'Lookup - Easy / Linux & Web', 'Pyrat - Easy / Linux', '', 'Run "cd Projects" to view all writeups.'] },
     contact(){ return ['email: xorxorplain@proton.me', 'PGP: You can download my public key from the root of the website (xorxorplain.com/pgp_public.asc)'] },
     echo(args){ return [args.join(' ')] },
 

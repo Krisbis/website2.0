@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Classy hacker vibes homepage with an emulated bash terminal" />
+    <link rel="icon" href="favicon.png" type="image/png" sizes="32x32">
     <title>Homepage</title>
 
     <!-- Google Fonts: Inter (UI) + JetBrains Mono (code) -->
@@ -107,21 +108,5 @@
             })();
         </script>
 
-    <script>
-        // set current year
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-    <script>
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on("init", function(user) {
-          if (!user) {
-            window.netlifyIdentity.on("login", function() {
-              document.location.href = "/admin/";
-            });
-          }
-        });
-      }
-    </script>
 </body>
 </html>

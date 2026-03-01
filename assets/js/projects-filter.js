@@ -23,6 +23,7 @@
   var selectedTagsEl = document.getElementById('selectedTags');
 
   if (!searchInput || !grid) return;
+  if (!sortBtn || !tagSelectorBtn || !tagDropdown || !tagDropdownList || !selectedTagsEl) return;
 
   var newestFirst      = true;
   var activeDifficulty = 'all';

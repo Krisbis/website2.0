@@ -3,8 +3,8 @@
 (function(){
     const loader = document.getElementById('loader-overlay');
     const bar = document.getElementById('loader-cli-bar');
-    const label = document.getElementById('loader-cli-label');
     const phrase = document.getElementById('loader-phrase');
+    if (!loader || !bar || !phrase) return;
 
     const phrases = [
       'Testing in prod...',
@@ -61,6 +61,7 @@
     }
 
     function hideLoader() {
+      clearInterval(phraseInterval);
       loader.style.opacity = 0;
       setTimeout(()=>{ loader.style.display = 'none'; }, 600);
     }
@@ -75,7 +76,7 @@
     window.addEventListener('load', ()=>{
       // find background video
       const vid = document.querySelector('.bg-video');
-      if(vid && !vid.readyState >= 3) {
+      if(vid && vid.readyState < 3) {
         vid.addEventListener('canplaythrough', ()=>{
           progress = 100;
           renderBar();
@@ -90,17 +91,4 @@
       }
     });
 
-    // Simulate loader for testing
-    window.simulateLoader = function() {
-      loader.style.display = 'flex';
-      loader.style.opacity = 1;
-      progress = 0;
-      renderBar();
-      phraseIdx = Math.floor(Math.random() * phrases.length);
-      nextPhrase();
-      clearInterval(interval);
-      clearInterval(phraseInterval);
-      phraseInterval = setInterval(nextPhrase, 2500);
-      animateBar();
-    };
 })();
