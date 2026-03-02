@@ -3,13 +3,13 @@
   <url>
     <loc>https://xorxorplain.com/</loc>
     <lastmod>2026-03-03</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>yearly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://xorxorplain.com/about.html</loc>
     <lastmod>2026-03-03</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
@@ -19,27 +19,9 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://xorxorplain.com/projects/hammer.html</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://xorxorplain.com/projects/lookup.html</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://xorxorplain.com/projects/pyrat.html</loc>
-    <lastmod>2026-03-03</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://xorxorplain.com/blog/</loc>
     <lastmod>2026-03-03</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 </urlset>
