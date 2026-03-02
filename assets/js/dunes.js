@@ -1,5 +1,5 @@
 /**
- * Animated background for homepage.
+ * Animated background for homepage
  */
 (function () {
   const canvas = document.getElementById('duneCanvas');
