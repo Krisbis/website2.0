@@ -3,3 +3,5 @@ Allow: /
 Disallow: /admin
 Disallow: /templates
 Disallow: /api
+
+Sitemap: https://xorxorplain.com/sitemap.xml
