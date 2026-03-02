@@ -1,10 +1,5 @@
 /**
- * Animated dune-lines background.
- * Calm flowing lines with travelling S-wave distortions.
- *
- * Mouse hover disrupts lines, click spawns ripples,
- * click-drag leaves a trail of smaller ripples.
- * Corner colour buttons spawn full-screen colour transitions.
+ * Animated background for homepage.
  */
 (function () {
   const canvas = document.getElementById('duneCanvas');
@@ -12,7 +7,7 @@
   const ctx = canvas.getContext('2d');
 
   /* ─── tunables ─── */
-  const LINE_GAP      = 7;
+  const LINE_GAP      = 8;
   const LINE_WIDTH    = 1;
   const SPEED         = 0.00006;
   const SEGS          = 300;    // horizontal segments per line

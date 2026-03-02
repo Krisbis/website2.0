@@ -936,7 +936,14 @@ body {
 
 .terminal-card{border-radius:12px; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
 .terminal{font-family:'JetBrains Mono', monospace; font-size:0.95rem; min-height:180px;}
-.output{max-height:240px; overflow:auto; padding:6px 8px;}
+.output{max-height:240px; overflow:auto; padding:6px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.output::-webkit-scrollbar{ width: 6px; height: 6px; }
+.output::-webkit-scrollbar-track{ background: transparent; }
+.output::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.08); border-radius: 3px; }
+.output::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,0.15); }
 .output .line{white-space:pre-wrap; margin:2px 0; color:#cfd8e3}
 .prompt-row{display:flex; gap:8px; align-items:center; padding:6px 8px; border-top:1px solid rgba(255,255,255,0.02);}
 .prompt{color:var(--muted); min-width:120px; font-family:'JetBrains Mono', monospace}
@@ -950,7 +957,7 @@ body {
 @keyframes blink{50%{opacity:0}}
 
 /* Terminal color tokens (bash-like) */
-.ps1{ color:#69d84f; font-weight:600 } /* green prompt */
+.ps1{ color:#ff9100; font-weight:600 } /* red prompt */
 .cmd-text{ color:var(--accent) }
 .term-dir{ color:#4da6ff } /* blue for directories */
 .term-exec{ color:#7fe77f } /* green for executables */

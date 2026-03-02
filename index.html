@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; frame-ancestors 'none';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self' cdn.jsdelivr.net;" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
@@ -58,7 +58,7 @@
                         <div id="terminal" class="terminal" aria-label="Emulated terminal" role="region">
                             <div id="output" class="output" aria-live="polite"></div>
                             <div class="prompt-row">
-                                <span class="prompt">user@neon:~$</span>
+                                <span class="prompt">user@null:~$</span>
                                 <input id="cmdInput" class="cmd-input" autocomplete="off" autofocus spellcheck="false" aria-label="Terminal input" />
                             </div>
                         </div>
@@ -85,12 +85,5 @@
     <script src="assets/js/title-glitch.js"></script>
     <script src="assets/js/loader.js"></script>
     <script src="assets/js/dunes.js"></script>
-
-
-
-    <script>
-        // set current year
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
 </body>
 </html>
