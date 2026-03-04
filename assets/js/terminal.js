@@ -107,7 +107,7 @@
   const commands = {
     help() {
       return [
-        'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, theme, projects, contact, echo, clear'
+        'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, base64, theme, projects, contact, echo, clear'
       ];
     },
     whoami() {
@@ -227,6 +227,104 @@
       delete fs[name];
       saveFs();
       return [`removed ${name}`];
+    },
+
+    base64(args) {
+      const usage = [
+        'usage: base64 [OPTION] <string>',
+        '  -d, --decode   decode base64 string',
+        '  -e, --encode   encode string as base64 (default)',
+        '  --             treat remaining input as literal text'
+      ];
+
+      if (!args || args.length === 0) return usage;
+
+      let mode = 'encode';
+      let sawDecode = false;
+      let sawEncode = false;
+      let parsingFlags = true;
+      const payloadParts = [];
+
+      for (let i = 0; i < args.length; i++) {
+        const token = args[i];
+
+        if (parsingFlags && token === '--') {
+          parsingFlags = false;
+          continue;
+        }
+
+        if (parsingFlags && token === '--help') {
+          return usage;
+        }
+
+        if (parsingFlags && (token === '-d' || token === '--decode')) {
+          sawDecode = true;
+          mode = 'decode';
+          continue;
+        }
+
+        if (parsingFlags && (token === '-e' || token === '--encode')) {
+          sawEncode = true;
+          mode = 'encode';
+          continue;
+        }
+
+        if (parsingFlags && token.startsWith('-')) {
+          return [
+            `base64: invalid option '${token}'`,
+            'Try "base64 --help" for usage.'
+          ];
+        }
+
+        payloadParts.push(token);
+      }
+
+      if (sawDecode && sawEncode) {
+        return ['base64: choose either encode or decode, not both'];
+      }
+
+      const input = payloadParts.join(' ');
+      if (input.length === 0) return ['base64: missing operand'];
+
+      const MAX_INPUT_CHARS = 8192;
+      if (input.length > MAX_INPUT_CHARS) {
+        return [`base64: input too large (max ${MAX_INPUT_CHARS} characters)`];
+      }
+
+      if (mode === 'decode') {
+        const compact = input.replace(/\s+/g, '');
+        if (compact.length === 0) return ['base64: missing operand'];
+
+        if (compact.length % 4 !== 0) {
+          return ['base64: invalid input — length must be a multiple of 4'];
+        }
+
+        if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(compact)) {
+          return ['base64: invalid input — malformed base64'];
+        }
+
+        try {
+          const binaryStr = atob(compact);
+          const bytes = Uint8Array.from(binaryStr, function (c) { return c.charCodeAt(0); });
+          const decoded = new TextDecoder().decode(bytes);
+          return [decoded];
+        } catch (e) {
+          return ['base64: invalid input — could not decode'];
+        }
+      }
+
+      try {
+        const bytes = new TextEncoder().encode(input);
+        const CHUNK_SIZE = 0x8000;
+        let binaryStr = '';
+        for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+          const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+          binaryStr += String.fromCharCode.apply(null, chunk);
+        }
+        return [btoa(binaryStr)];
+      } catch (e) {
+        return ['base64: encoding failed'];
+      }
     },
 
     theme(args) {
