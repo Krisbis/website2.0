@@ -7,11 +7,8 @@ tags:
   - Reverse Shell
   - Git
   - SSH
-  - Netcat
   - Brute Force
   - Linux
-  - Enumeration
-  - Privilege Escalation
 image: "https://cards.scryfall.io/art_crop/front/4/6/46419d29-21a1-4753-a2f0-1d0d996ec54e.jpg?1608910463"
 image_alt: "Soul Shatter art"
 date: 2026-02-10

@@ -12,7 +12,6 @@ tags:
   - RCE
   - Burp
   - Web
-  - Enumeration
 image: "https://cards.scryfall.io/art_crop/front/c/4/c4c2c914-e9a7-450b-88d9-8885fe0f6643.jpg?1675957081"
 image_alt: "Essence Channeler art"
 date: 2026-02-21
