@@ -933,7 +933,7 @@ body {
 }
 /* ────────────────────────────────────────────────────── */
 
-.hero{min-height:85vh; display:flex; align-items:center; margin-top:12px}
+.hero{min-height:85vh; display:flex; align-items:center; justify-content:center; margin-top:12px}
 .accent{color:var(--accent);font-family:'Share Tech Mono', monospace}
 
 .terminal-card{border-radius:12px; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
