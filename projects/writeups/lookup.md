@@ -29,10 +29,14 @@ Lookup is an easy boot-to-root that rewards careful web enumeration. The chain i
 ### Nmap Scan
 
 ```
-$ nmap -sC -sV -oN nmap/lookup 10.10.11.xx
-PORT   STATE SERVICE VERSION
-22/tcp open  ssh     OpenSSH
-80/tcp open  http    nginx
+$ nmap -p- --min-rate 1000 -Pn 10.10.11.xx
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+```
+
+```
+$ nmap -sCV -p 22,80 -oN nmap/lookup 10.10.11.xx
 ```
 
 HTTP redirects to `http://lookup.thm/`, so I added the host entry and browsed the site.

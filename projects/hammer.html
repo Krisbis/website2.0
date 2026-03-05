@@ -87,9 +87,11 @@
 <p>Hammer is a medium web challenge that chains together weak account recovery (a 4-digit OTP), information leakage through exposed log files, and JWT abuse via a controllable <code>kid</code> value to escalate from a normal user to an admin capable of command execution.</p>
 <h2>Reconnaissance</h2>
 <h3>Nmap Scan</h3>
-<pre><code>$ nmap -sC -sV -oN nmap/hammer 10.10.11.xx
-PORT    STATE SERVICE
-1337/tcp open  http
+<pre><code>$ nmap -p- --min-rate 1000 -Pn 10.10.11.xx
+PORT     STATE SERVICE
+1337/tcp open  waste
+</code></pre>
+<pre><code>$ nmap -sCV -p 1337 -oN nmap/hammer 10.10.11.xx
 </code></pre>
 <p>The web app is served over HTTP on port 1337.</p>
 <h3>Directory Enumeration</h3>

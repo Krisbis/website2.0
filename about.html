@@ -68,37 +68,7 @@
   <button id="bgVideoToggle" class="bg-video-toggle" aria-label="Pause background video" title="Pause background video">
     <span id="bgVideoToggleIcon">❚❚</span>
   </button>
-
-  <script>
-    // Toggle play/pause for the About page background video
-    (function () {
-      function init() {
-        var video = document.getElementById('aboutBgVideo');
-        var btn = document.getElementById('bgVideoToggle');
-        var icon = document.getElementById('bgVideoToggleIcon');
-        if (!video || !btn || !icon) return;
-
-        btn.addEventListener('click', function () {
-          if (video.paused) {
-            video.play();
-            icon.textContent = '❚❚';
-            btn.setAttribute('aria-label', 'Pause background video');
-            btn.setAttribute('title', 'Pause background video');
-          } else {
-            video.pause();
-            icon.textContent = '►';
-            btn.setAttribute('aria-label', 'Play background video');
-            btn.setAttribute('title', 'Play background video');
-          }
-        });
-
-        // keep icon in sync if video state changes externally
-        video.addEventListener('play', function () { icon.textContent = '❚❚'; });
-        video.addEventListener('pause', function () { icon.textContent = '►'; });
-      }
-      if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
-    })();
-  </script>
+  <script src="assets/js/about-video-toggle.js"></script>
   <div id="about-main-row">
     <nav id="about-side-nav">
       <ul>

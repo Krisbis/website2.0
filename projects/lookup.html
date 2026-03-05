@@ -90,10 +90,12 @@
 <p>Lookup is an easy boot-to-root that rewards careful web enumeration. The chain is: username enumeration on a login form → pivot to a hidden file-manager subdomain → elFinder 2.1.47 command injection to get a shell → abuse of a misconfigured SUID binary for horizontal escalation → root via a passwordless <code>sudo</code> rule for <code>look</code>.</p>
 <h2>Reconnaissance</h2>
 <h3>Nmap Scan</h3>
-<pre><code>$ nmap -sC -sV -oN nmap/lookup 10.10.11.xx
-PORT   STATE SERVICE VERSION
-22/tcp open  ssh     OpenSSH
-80/tcp open  http    nginx
+<pre><code>$ nmap -p- --min-rate 1000 -Pn 10.10.11.xx
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+</code></pre>
+<pre><code>$ nmap -sCV -p 22,80 -oN nmap/lookup 10.10.11.xx
 </code></pre>
 <p>HTTP redirects to <code>http://lookup.thm/</code>, so I added the host entry and browsed the site.</p>
 <p>Example hosts entry:</p>
