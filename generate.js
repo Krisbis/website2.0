@@ -65,6 +65,18 @@ function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function writeFileIfChanged(filePath, content) {
+  if (fs.existsSync(filePath)) {
+    var existing = fs.readFileSync(filePath, 'utf8');
+    if (existing === content) {
+      return false;
+    }
+  }
+
+  fs.writeFileSync(filePath, content, 'utf8');
+  return true;
+}
+
 // ── read all writeup markdown files ────────────────────────────
 
 function getWriteups() {
@@ -108,6 +120,7 @@ function getWriteups() {
 
 function generateWriteupPages(writeups) {
   var template = fs.readFileSync(TEMPLATE, 'utf8');
+  var generatedCount = 0;
 
   writeups.forEach(function (w) {
     var html = template;
@@ -125,9 +138,16 @@ function generateWriteupPages(writeups) {
     html = html.replace(/\{\{CONTENT\}\}/g, renderedBody);
 
     var outPath = path.join(OUTPUT_DIR, w.slug + '.html');
-    fs.writeFileSync(outPath, html, 'utf8');
-    console.log('  ✓ Generated', outPath);
+    var changed = writeFileIfChanged(outPath, html);
+    if (changed) {
+      generatedCount++;
+      console.log('  ✓ Generated', outPath);
+    } else {
+      console.log('  ↺ Up-to-date', outPath);
+    }
   });
+
+  return generatedCount;
 }
 
 // ── rebuild card section in projects.html ──────────────────────
@@ -192,8 +212,14 @@ function updateProjectsHtml(writeups) {
     html = html.slice(0, si + startMarker.length) + '\n' + cardsHtml + '\n    ' + html.slice(ei);
   }
 
-  fs.writeFileSync(PROJECTS_HTML, html, 'utf8');
-  console.log('  ✓ Updated', PROJECTS_HTML);
+  var changed = writeFileIfChanged(PROJECTS_HTML, html);
+  if (changed) {
+    console.log('  ✓ Updated', PROJECTS_HTML);
+  } else {
+    console.log('  ↺ Up-to-date', PROJECTS_HTML);
+  }
+
+  return changed;
 }
 
 // ── main ───────────────────────────────────────────────────────
@@ -242,6 +268,7 @@ function getBlogPosts() {
 
 function generateBlogPages(posts) {
   var template = fs.readFileSync(BLOG_TEMPLATE, 'utf8');
+  var generatedCount = 0;
 
   posts.forEach(function (p) {
     var html = template;
@@ -259,9 +286,16 @@ function generateBlogPages(posts) {
     html = html.replace(/\{\{CONTENT\}\}/g, renderedBody);
 
     var outPath = path.join(BLOG_OUTPUT_DIR, p.slug + '.html');
-    fs.writeFileSync(outPath, html, 'utf8');
-    console.log('  ✓ Generated', outPath);
+    var changed = writeFileIfChanged(outPath, html);
+    if (changed) {
+      generatedCount++;
+      console.log('  ✓ Generated', outPath);
+    } else {
+      console.log('  ↺ Up-to-date', outPath);
+    }
   });
+
+  return generatedCount;
 }
 
 // ── rebuild blog card section in blog/index.html ───────────────
@@ -308,8 +342,14 @@ function updateBlogIndexHtml(posts) {
 
   html = html.slice(0, si + startMarker.length) + '\n' + cardsHtml + '\n' + html.slice(ei);
 
-  fs.writeFileSync(BLOG_INDEX_HTML, html, 'utf8');
-  console.log('  ✓ Updated', BLOG_INDEX_HTML);
+  var changed = writeFileIfChanged(BLOG_INDEX_HTML, html);
+  if (changed) {
+    console.log('  ✓ Updated', BLOG_INDEX_HTML);
+  } else {
+    console.log('  ↺ Up-to-date', BLOG_INDEX_HTML);
+  }
+
+  return changed;
 }
 
 // ── main ───────────────────────────────────────────────────────
@@ -317,30 +357,35 @@ function updateBlogIndexHtml(posts) {
 console.log('Generating writeups...\n');
 
 var writeups = getWriteups();
+var generatedWriteupPages = 0;
+var projectsIndexUpdated = false;
 
 if (writeups.length === 0) {
   console.log('No writeup markdown files found in', WRITEUPS_DIR);
   console.log('Skipping writeup generation.');
 } else {
   console.log('Found ' + writeups.length + ' writeup(s):\n');
-  generateWriteupPages(writeups);
+  generatedWriteupPages = generateWriteupPages(writeups);
   console.log('');
-  updateProjectsHtml(writeups);
+  projectsIndexUpdated = updateProjectsHtml(writeups);
 }
 
 console.log('\n--- Blog ---\n');
 console.log('Generating blog posts...\n');
 
 var blogPosts = getBlogPosts();
+var generatedBlogPages = 0;
+var blogIndexUpdated = false;
 
 if (blogPosts.length === 0) {
   console.log('No blog post markdown files found in', BLOG_POSTS_DIR);
   console.log('Skipping blog generation.');
 } else {
   console.log('Found ' + blogPosts.length + ' blog post(s):\n');
-  generateBlogPages(blogPosts);
+  generatedBlogPages = generateBlogPages(blogPosts);
   console.log('');
-  updateBlogIndexHtml(blogPosts);
+  blogIndexUpdated = updateBlogIndexHtml(blogPosts);
 }
 
-console.log('\nDone! ' + writeups.length + ' writeup(s), ' + blogPosts.length + ' blog post(s) generated.');
+console.log('\nDone! Processed ' + writeups.length + ' writeup(s), ' + blogPosts.length + ' blog post(s).');
+console.log('Changed files: ' + generatedWriteupPages + ' writeup page(s), ' + generatedBlogPages + ' blog page(s), ' + (projectsIndexUpdated ? 1 : 0) + ' projects index, ' + (blogIndexUpdated ? 1 : 0) + ' blog index.');
