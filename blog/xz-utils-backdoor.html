@@ -84,7 +84,7 @@
 <p><strong>Note:</strong> I am not deeply familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. For excellent deep-dives, I&#39;d recommend <a href="https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s">Veritasium&#39;s more approachable video on the incident</a> and/or <a href="https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s">Denzel Farmer&#39;s more detailed technical lecture of the backdoor</a>.</p>
 </blockquote>
 <h2>Supply Chain Attack via Dependencies</h2>
-<p>Most people never think about <code>xz</code> or <code>liblzma</code> when talking about SSH.</p>
+<p>Most people never think about <code>xz</code> or <code>liblzma</code> when talking about SSH. Atleast I never did.</p>
 <p>It is simply a compression library, one of many small utilities buried deep inside the dependency trees of most Linux distributions.</p>
 <p>However, in many systems <code>liblzma</code> is linked by <code>libsystemd</code>, and <code>libsystemd</code> is in turn used by OpenSSH&#39;s <code>sshd</code> in distributions that integrate SSH with systemd features such as socket activation or service notifications.</p>
 <p>This creates an unexpected path.</p>
