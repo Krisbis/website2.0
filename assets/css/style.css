@@ -933,6 +933,30 @@ body {
 }
 /* ────────────────────────────────────────────────────── */
 
+/* ── Global scrollbar style (matches projects mobile look) ─ */
+*{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+
+*::-webkit-scrollbar{
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track{
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.15);
+}
+
 .hero{min-height:85vh; display:flex; align-items:center; justify-content:center; margin-top:12px}
 .accent{color:var(--accent);font-family:'Share Tech Mono', monospace}
 
@@ -1940,5 +1964,208 @@ a.previewCard{
   .writeup-tag{
     font-size: 0.62rem;
     padding: 0.15em 0.5em;
+  }
+}
+
+/* ── Blog post readability tweaks ─────────────────────────── */
+
+body.blog-post-page .bg-overlay-glass{
+  background: rgba(10,14,22,0.38);
+  backdrop-filter: blur(14px) saturate(1.06);
+}
+
+body.blog-post-page .writeup-container.glass-content{
+  background: rgba(12,16,24,0.62);
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 10px 42px rgba(0,0,0,0.3);
+}
+
+body.blog-post-page .writeup-body{
+  color: rgba(230,236,242,0.92);
+}
+
+body.blog-post-page .writeup-body h2,
+body.blog-post-page .writeup-body h3{
+  color: rgba(235,240,245,0.95);
+}
+
+/* ── Blog cards ────────────────────────────────────────────── */
+
+/* Allow scrolling on blog page */
+html:has(.blog-cards),
+html:has(.blog-cards) body{
+  overflow: auto;
+  height: auto;
+}
+
+.blog-cards{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+}
+
+/* Blog card — adapted from .previewCard with wider ratio & more text room */
+.blogCard{
+  --gutter: 1.5rem;
+  --brightness: 0.82;
+  --saturation: 1.4;
+  --frostRadius: 1.5rem;
+  padding: var(--gutter);
+  border-radius: var(--gutter);
+  aspect-ratio: 5 / 3;
+  width: 100%;
+  max-width: 36rem;
+  display: grid;
+  justify-content: start;
+  align-content: end;
+  position: relative;
+  background: #222;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 250ms ease-in-out;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Subtle bottom-only darkening for text readability (no blur/glass effect) */
+.blogCard::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.64) 0%,
+    rgba(0,0,0,0.34) 28%,
+    rgba(0,0,0,0) 58%
+  );
+}
+
+/* Backdrop image — object-fit:cover handles varying MET aspect ratios */
+.blogCard .backdrop{
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  width: 100%;
+  height: 100%;
+  transform: scale(1.06);
+  transition: transform 500ms ease-in-out;
+}
+
+.blogCard:hover{
+  transform: scale(1.04);
+}
+.blogCard:hover .backdrop{
+  transform: scale(1.12);
+}
+.blogCard:hover .blog-arrow svg{
+  transform: scale(1.4);
+}
+
+/* Card content area */
+.blogCard .content{
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.blogCard .blog-topic{
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.68rem;
+  letter-spacing: 0.1rem;
+  opacity: 0.5;
+}
+
+/* Title: allows wrapping up to 3 lines for longer blog titles */
+.blogCard .blog-title{
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Excerpt: 2-line teaser */
+.blogCard .blog-excerpt{
+  font-size: 0.88rem;
+  line-height: 1.4;
+  opacity: 0.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Footer row: date + arrow */
+.blogCard .blog-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+
+.blogCard .blog-date{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.45);
+}
+
+.blogCard .blog-arrow{
+  display: grid;
+  place-items: center;
+}
+.blogCard .blog-arrow svg{
+  width: 1.5rem;
+  height: 1.5rem;
+  transition: transform 250ms ease-in-out;
+}
+
+/* ── Blog cards responsive ─────────────────────────────────── */
+
+@media (max-width: 767px){
+  .blog-cards{
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    justify-items: center;
+  }
+  .blogCard{
+    --gutter: 1.2rem;
+    max-width: 28rem;
+  }
+  .blogCard .blog-title{
+    font-size: 1.2rem;
+  }
+  .blogCard .blog-excerpt{
+    font-size: 0.82rem;
+  }
+  .blogCard .blog-date{
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 420px){
+  .blogCard{
+    max-width: 22rem;
+    aspect-ratio: 4 / 3;
+  }
+  .blogCard .blog-title{
+    font-size: 1.1rem;
+  }
+  .blogCard .blog-excerpt{
+    font-size: 0.78rem;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
   }
 }

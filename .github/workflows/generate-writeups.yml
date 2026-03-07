@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - 'projects/writeups/**'
+      - 'blog/posts/**'
       - 'templates/writeup-template.html'
+      - 'templates/blog-template.html'
       - 'generate.js'
   workflow_dispatch:
 
@@ -34,11 +36,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add projects/*.html
+          git add projects/*.html blog/*.html blog/index.html
           # Check if there are changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-generate writeup pages [skip ci]"
+            git commit -m "Auto-generate writeup & blog pages [skip ci]"
             git push
           fi

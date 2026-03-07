@@ -7,15 +7,14 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
-  <title>Blog</title>
-  <meta name="description" content="Blog posts by xorxorplain">
+  <title>{{TITLE}} — Blog</title>
+  <meta name="description" content="{{TITLE}} — {{EXCERPT}}">
   <link rel="icon" href="../favicon.png" type="image/png" sizes="32x32">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body>
-  <!-- Loader overlay (CLI style) -->
+<body class="blog-post-page">
   <div id="loader-overlay">
     <div class="loader-cli">
       <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
@@ -23,17 +22,18 @@
       <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
     </div>
   </div>
-  <!-- Background video and glassy overlay -->
-  <!-- BG-video created by: tommyvideo - https://pixabay.com/videos/space-galaxy-abstract-lights-5200/ -->
-  <div class="bg-video-wrapper">
-    <video class="bg-video" src="../assets/videos/blog_background.mp4" autoplay loop muted playsinline></video>
+
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/blog_background.mp4" type="video/mp4">
+    </video>
     <div class="bg-overlay-glass"></div>
   </div>
 
   <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
     <div class="container-fluid">
       <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navMenu">
@@ -47,29 +47,30 @@
     </div>
   </nav>
 
-  <main class="container py-5 text-light">
-    <div class="glass-content">
-      <h1 class="h3">Blog</h1>
-      <p class="text-muted">Security, engineering, and the occasional deep-dive.</p>
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <a href="index.html" class="writeup-back" aria-label="Back to blog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Blog</span>
+      </a>
 
-      <!-- Blog cards -->
-      <article class="blog-cards mt-4">
-<!-- BLOG-CARDS-START -->
-        <a href="xz-utils-backdoor.html" class="blogCard">
-          <img src="https://images.metmuseum.org/CRDImages/ep/web-large/DT50.jpg" class="backdrop" alt="The Repast of the Lion - Henri Rousseau (le Douanier) French - ca. 1907" />
-          <div class="content">
-            <div class="blog-topic">Security</div>
-            <div class="blog-title">XZ Utils Backdoor</div>
-            <div class="blog-excerpt">A Social-Engineered Supply-Chain Backdoor</div>
-            <div class="blog-footer">
-              <span class="blog-date">07/03/2026</span>
-              <span class="blog-arrow">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#e3e3e3"><path d="M504-480 348-636q-11-11-11-28t11-28q11-11 28-11t28 11l184 184q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L404-268q-11 11-28 11t-28-11q-11-11-11-28t11-28l156-156Z"/></svg>
-              </span>
-            </div>
-          </div>
-        </a>
-<!-- BLOG-CARDS-END -->
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--medium">{{CATEGORY}}</span>
+          <span class="writeup-env">{{ENVIRONMENT}}</span>
+          <span class="writeup-date">{{DATE}}</span>
+        </div>
+        <h1 class="writeup-title">{{TITLE}}</h1>
+      </header>
+
+      <div class="writeup-tags">
+        {{TAGS}}
+      </div>
+
+      <hr class="writeup-divider">
+
+      <article class="writeup-body">
+        {{CONTENT}}
       </article>
     </div>
   </main>

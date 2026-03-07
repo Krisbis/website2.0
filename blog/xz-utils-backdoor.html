@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; connect-src 'self' cdn.jsdelivr.net;" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+  <title>XZ Utils Backdoor — Blog</title>
+  <meta name="description" content="XZ Utils Backdoor — A Social-Engineered Supply-Chain Backdoor">
+  <link rel="icon" href="../favicon.png" type="image/png" sizes="32x32">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="blog-post-page">
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating & upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <video id="bgVideoWriteup" class="bg-video" autoplay muted loop playsinline preload="auto">
+      <source src="../assets/videos/blog_background.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="../index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="../projects/projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link active" href="index.html">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="writeup-page">
+    <div class="writeup-container glass-content">
+      <a href="index.html" class="writeup-back" aria-label="Back to blog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-160 160-480l320-320 56 56-224 224h488v80H312l224 224-56 56Z"/></svg>
+        <span>Blog</span>
+      </a>
+
+      <header class="writeup-header">
+        <div class="writeup-meta">
+          <span class="writeup-badge writeup-badge--medium">Security</span>
+          <span class="writeup-env">Supply Chain</span>
+          <span class="writeup-date">07/03/2026</span>
+        </div>
+        <h1 class="writeup-title">XZ Utils Backdoor</h1>
+      </header>
+
+      <div class="writeup-tags">
+        <span class="writeup-tag">Linux</span>
+        <span class="writeup-tag">Open Source</span>
+        <span class="writeup-tag">Supply Chain</span>
+        <span class="writeup-tag">Social Engineering</span>
+        <span class="writeup-tag">SSH</span>
+        <span class="writeup-tag">Nation State</span>
+      </div>
+
+      <hr class="writeup-divider">
+
+      <article class="writeup-body">
+        <p>One of my favourite quotes from Darknet Diaries is <em>&quot;..when truth is stranger than fiction&quot;</em>. That encapsulates many of the incidents and stories we hear and see when dealing with cyber. It&#39;s both exhilarating and scary.</p>
+<p>Advanced attacks where social engineering acts as a central aspect of the attack path are captivating to me. It taps into the human psyche and emphasizes what I consider to be a fact: every single one of us is inherently &quot;vulnerable&quot;. Given the right conditions at the right time, I believe all of us can be &quot;exploited&quot;.</p>
+<p>The XZ Utils backdoor incident of 2024 brought all of this together. Technical prowess and creativity of a nation-state actor, an exceptionally deterministic social engineering operation that played out over <em>years</em>, and a happy ending handed to us by a German developer who was annoyed that SSH took 500ms longer to authenticate. Thank you, Germany, and your engineering precision.</p>
+<h2>Supply Chain Attack via Dependencies</h2>
+<p>Most people don&#39;t think about <code>xz</code> or <code>liblzma</code>. It&#39;s a compression library, one of many quiet utilities that lives deep in the dependency tree of virtually every Linux distribution. But here&#39;s the thing: <code>liblzma</code> is linked by <code>libsystemd</code>, and <code>libsystemd</code> is linked by OpenSSH&#39;s <code>sshd</code> on many distros (particularly those that ship patched versions of OpenSSH integrating with systemd for notifications and socket activation).</p>
+<p>That&#39;s the attack surface. Not SSH itself, but a compression library <em>two layers down</em> the dependency chain that SSH never explicitly asked for.</p>
+<p>This is the fundamental challenge of supply chain security. Modern software doesn&#39;t just depend on what you think it depends on. It depends on what <em>those</em> things depend on, and what <em>those</em> depend on, recursively down the stack. Keeping an accurate, real-time mental model of every transitive dependency, its maintainers, its release process, and its integrity — that&#39;s not a task any single human or team can realistically do at scale. Yet that is exactly what would be needed to catch something like this before it ships.</p>
+<h2>Phase 1: The Long Con — Social Engineering Operation</h2>
+<p>This is what makes this incident extraordinary. It wasn&#39;t a zero-day exploit or a stolen credential. It was patience.</p>
+<p>A persona going by <strong>Jia Tan</strong> (GitHub handle <code>JiaT75</code>) began contributing to the XZ Utils project around <strong>2021</strong>. Early contributions were harmless and helpful — fixing bugs, cleaning code, genuinely useful work. The kind of contributions any maintainer would welcome.</p>
+<p>Simultaneously, the original XZ maintainer, <strong>Lasse Collin</strong>, started receiving pressure from other accounts, complaining about slow patch reviews and suggesting the project needed another maintainer. Some of these accounts appeared to exist solely for this purpose — manufactured social pressure applied over months.</p>
+<p>It worked. By <strong>2023</strong>, Jia Tan had earned enough trust to receive commit access. By early <strong>2024</strong>, they were effectively co-maintaining the project.</p>
+<p>The entire social engineering operation was designed to exploit one of the most human dynamics in open source: a lone, overwhelmed maintainer who genuinely needed help, being offered it by someone who had put in the work. There was no reason to say no. That&#39;s what makes it so effective and so difficult to defend against.</p>
+<h2>Phase 2: Laying the Groundwork</h2>
+<p>With maintainer access secured, the technical operation began. But it wasn&#39;t rushed. The changes came in incrementally, each one looking reasonable in isolation:</p>
+<ul>
+<li><p><strong>Test infrastructure manipulation</strong> — Jia Tan added binary test fixture files (<code>.xz</code> compressed blobs) to the repository. These looked like legitimate test cases for the compression library. In reality, they contained the obfuscated payload that would later be extracted and injected during the build process.</p>
+</li>
+<li><p><strong>Build system modifications</strong> — Subtle changes were made to the autotools build scripts (<code>configure</code>, <code>Makefile.in</code>, and related m4 macros). These modifications conditionally executed during <code>make</code> only under specific circumstances — specifically when building on x86-64 Linux with GCC and when the build environment looked like a Debian or RPM package build (not a developer build).</p>
+</li>
+<li><p><strong>Gradual normalization</strong> — Each change individually passed review. The test files were &quot;just test data&quot;. The build changes were &quot;just cleanup&quot;. The layering was so gradual that no single commit raised alarm bells.</p>
+</li>
+</ul>
+<h2>Phase 3: The Backdoor</h2>
+<p>The actual backdoor was elegant in a deeply uncomfortable way.</p>
+<p>During the build process of the tainted release (versions <strong>5.6.0</strong> and <strong>5.6.1</strong>), the malicious build scripts would:</p>
+<ol>
+<li><strong>Extract a hidden payload</strong> from the binary test files using a chain of shell commands that unpacked, decoded, and decrypted the obfuscated data.</li>
+<li><strong>Inject a compiled object file</strong> into <code>liblzma</code> during linking — this object hooked into the library&#39;s symbol resolution.</li>
+<li><strong>Hijack the authentication path</strong> — the injected code patched <code>RSA_public_decrypt()</code> in the running <code>sshd</code> process through indirect function resolution (<code>IFUNC</code>). This allowed the attacker to intercept authentication and execute arbitrary commands before the real authentication check ran.</li>
+</ol>
+<p>The result: <strong>a pre-auth remote code execution backdoor in SSH</strong>, triggered by a specially crafted public key sent during connection. Anyone with the right key could authenticate to any affected <code>sshd</code> without credentials.</p>
+<p>At a very high level, the payload logic looked something like this:</p>
+<pre><code class="language-text">Client connects to sshd
+  |
+  v
+  sshd reaches RSA verification
+  |
+  v
+backdoored liblzma hook runs first
+  |
+  v
+Checks for attacker-controlled auth pattern
+  |
+   +----+----+
+   |         |
+  Yes        No
+   |         |
+   v         v
+Bypass /     Continue normal
+redirect     SSH auth flow
+auth path
+</code></pre>
+<p>That is simplified, but the core idea is the same: the malicious code gets a chance to inspect the authentication path first. If the incoming material matches what the attacker expects, it diverts execution. If not, <code>sshd</code> continues as normal, which is part of what made the backdoor so hard to spot in ordinary use.</p>
+<p>And it only activated on x86-64 Debian/Ubuntu-style systems building packages. Developer machines running <code>./configure &amp;&amp; make</code> from source wouldn&#39;t trigger it. CI running tests wouldn&#39;t trigger it. Only the package build pipeline would produce the backdoored binary. That&#39;s targeting with surgical precision.</p>
+<h2>Phase 4: Discovery — 500ms That Saved the Internet</h2>
+<p>In <strong>March 2024</strong>, <strong>Andres Freund</strong>, a PostgreSQL developer at Microsoft, noticed something that would&#39;ve gone past most people: his SSH logins were taking about <strong>500ms longer</strong> than expected. That&#39;s it — half a second.</p>
+<p>Instead of shrugging it off, he dug in. He profiled <code>sshd</code>, traced the latency to <code>liblzma</code>, and eventually uncovered the full backdoor chain. He disclosed it to the <code>oss-security</code> mailing list on <strong>March 29, 2024</strong>, and the security world collectively lost its mind.</p>
+<p>One detail I really like from Andres&#39; write-up is that the strange over-obfuscation was part of what made the whole thing stand out. If the payload had been cleaner and less bizarre, it may well have blended into the noise for longer. Sometimes attackers get caught not because they are unsophisticated, but because they become <em>too</em> weird.</p>
+<p>The vulnerability was assigned <strong>CVE-2024-3094</strong> with a CVSS score of <strong>10.0</strong> — the maximum.</p>
+<p>The timing was extraordinary. The backdoored versions had just started to land in unstable/testing branches of major distros. Debian Sid, Fedora Rawhide and 40 beta, openSUSE Tumbleweed, and Arch had pulled the tainted versions. If the discovery had been even a few weeks later, these versions would have migrated to stable releases, potentially affecting millions of systems.</p>
+<p>One developer&#39;s instinct to investigate a half-second delay quite literally prevented what could have been one of the most devastating supply chain compromises in history.</p>
+<h2>Summary</h2>
+<p>This incident reveals uncomfortable truths at every layer:</p>
+<p><strong>The malicious maintainer problem is nearly unsolvable.</strong> Jia Tan did everything right by open-source community standards — they contributed consistently, earned trust organically, and were <em>invited</em> to maintain. Every code review process, every contributor vetting heuristic, every web of trust model struggles against someone willing to invest years of patient, legitimate work. The trust model of open source depends on maintainers being trustworthy, and when that assumption fails, the blast radius is enormous.</p>
+<p><strong>Dependencies are deeply, recursively dangerous.</strong> SSH didn&#39;t depend on <code>xz</code>. SSH depended on <code>systemd</code> notifications, which depended on <code>libsystemd</code>, which depended on <code>liblzma</code>, which is part of <code>xz</code>. Nobody installing OpenSSH was thinking about their compression library dependency chain. And yet that chain is what carried the backdoor into the most security-critical daemon on most Linux systems. You could audit SSH and systemd to death and still not catch a threat living two links down. Oh, and speaking of systemd — this whole attack vector only existed because systemd being systemd had to pull in yet another dependency it arguably didn&#39;t need. Some things never change.</p>
+<p><strong>The discovery was pure luck and individual brilliance.</strong> We were saved not by any automated tool, security audit, package signing check, or reproducible build verification. We were saved by one person noticing a half-second delay and being stubborn enough to trace it. That&#39;s not a security model — that&#39;s a lottery.</p>
+<p>And here&#39;s the thing that sits with me the most: <strong>our public digital infrastructure fundamentally relies on the backs of highly skilled volunteers</strong>. People who create and maintain passion projects, giving all of us the tools we build on, at no cost. Lasse Collin maintained XZ Utils essentially alone for years. That isolation is exactly what made the social engineering possible.</p>
+<p>Companies that build billion-dollar products on open-source foundations have a responsibility to support the maintainers behind them. We need to make open-source contribution more sustainable and more rewarding for those who&#39;ve poured significant hours, years even, into solving problems that all of us benefit from. Because right now, the security of critical infrastructure often depends on whether one overworked volunteer happens to have a good week.</p>
+
+      </article>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/title-glitch.js"></script>
+  <script src="../assets/js/loader.js"></script>
+</body>
+</html>

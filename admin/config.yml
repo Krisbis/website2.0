@@ -1,7 +1,7 @@
 backend:
   name: github
   repo: krisbis/website2.0
-  branch: master
+  branch: main
   base_url: https://xorxor-decap-oauth.krizudee.workers.dev
   auth_endpoint: auth
 
@@ -50,6 +50,63 @@ collections:
         name: "image_alt"
         widget: "string"
         default: "Card art"
+        required: false
+
+      - label: "Date"
+        name: "date"
+        widget: "datetime"
+        format: "YYYY-MM-DD"
+        date_format: "DD/MM/YYYY"
+        time_format: false
+
+      - label: "Body"
+        name: "body"
+        widget: "markdown"
+
+  - name: "blog"
+    label: "Blog Posts"
+    folder: "blog/posts"
+    create: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    fields:
+      - label: "Title"
+        name: "title"
+        widget: "string"
+        hint: "Blog post title"
+
+      - label: "Category"
+        name: "category"
+        widget: "string"
+        default: "Post"
+        hint: "Badge text shown on post page (e.g. Security, Development)"
+
+      - label: "Environment"
+        name: "environment"
+        widget: "string"
+        required: false
+        hint: "Sub-label next to category (e.g. Supply Chain, Cloud)"
+
+      - label: "Excerpt"
+        name: "excerpt"
+        widget: "string"
+        hint: "Short subtitle shown on the blog card"
+
+      - label: "Tags"
+        name: "tags"
+        widget: "list"
+        hint: "Topics and keywords (e.g. Linux, Open Source, SSH)"
+
+      - label: "Card Image URL"
+        name: "image"
+        widget: "string"
+        hint: "URL for the blog card background image"
+
+      - label: "Card Image Alt"
+        name: "image_alt"
+        widget: "string"
+        default: "Blog card art"
         required: false
 
       - label: "Date"
