@@ -26,9 +26,13 @@ Hammer is a medium web challenge that chains together weak account recovery (a 4
 ### Nmap Scan
 
 ```
-$ nmap -sC -sV -oN nmap/hammer 10.10.11.xx
-PORT    STATE SERVICE
-1337/tcp open  http
+$ nmap -p- --min-rate 1000 -Pn 10.10.11.xx
+PORT     STATE SERVICE
+1337/tcp open  waste
+```
+
+```
+$ nmap -sCV -p 1337 -oN nmap/hammer 10.10.11.xx
 ```
 
 The web app is served over HTTP on port 1337.

@@ -84,10 +84,12 @@
 <p>Pyrat is an easy Linux CTF centered around a custom <strong>PyRAT</strong> service exposed on TCP/8000. The path to root is straightforward: get a shell as <code>www-data</code>, recover SSH creds for user <code>think</code> from a Git config, then brute-force the PyRAT <code>admin</code> password to pop a root shell.</p>
 <h2>Reconnaissance</h2>
 <h3>Nmap Scan</h3>
-<pre><code>$ nmap -sC -sV -oN nmap/pyrat 10.10.10.10
-PORT     STATE SERVICE VERSION
+<pre><code>$ nmap -p- --min-rate 1000 -Pn 10.10.10.10
+PORT     STATE SERVICE
 22/tcp   open  ssh
-8000/tcp open  unknown
+8000/tcp open  http-alt
+</code></pre>
+<pre><code>$ nmap -sCV -p 22,8000 -oN nmap/pyrat 10.10.10.10
 </code></pre>
 <p>Port 8000 is not a normal web service; interacting with it manually (e.g., via <code>nc</code>) reveals a custom text-based program.</p>
 <h2>Exploitation</h2>

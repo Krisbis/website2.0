@@ -23,10 +23,14 @@ Pyrat is an easy Linux CTF centered around a custom **PyRAT** service exposed on
 ### Nmap Scan
 
 ```
-$ nmap -sC -sV -oN nmap/pyrat 10.10.10.10
-PORT     STATE SERVICE VERSION
+$ nmap -p- --min-rate 1000 -Pn 10.10.10.10
+PORT     STATE SERVICE
 22/tcp   open  ssh
-8000/tcp open  unknown
+8000/tcp open  http-alt
+```
+
+```
+$ nmap -sCV -p 22,8000 -oN nmap/pyrat 10.10.10.10
 ```
 
 Port 8000 is not a normal web service; interacting with it manually (e.g., via `nc`) reveals a custom text-based program.
