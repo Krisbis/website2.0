@@ -29,7 +29,7 @@ Sometimes half a second is enough to change the course of the internet.
 
 ## Supply Chain Attack via Dependencies
 
-Most people never think about `xz` or `liblzma` when talking about SSH.
+Most people never think about `xz` or `liblzma` when talking about SSH. Atleast I never did.
 
 It is simply a compression library, one of many small utilities buried deep inside the dependency trees of most Linux distributions.
 
