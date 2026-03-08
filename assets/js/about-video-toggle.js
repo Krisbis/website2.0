@@ -1,4 +1,4 @@
-// Toggle play/pause for About page background video.
+// Toggle play/pause for background video on About and blog post pages.
 (function () {
   var PAUSE_ICON = "\u275A\u275A";
   var PLAY_ICON = "\u25BA";
@@ -10,7 +10,7 @@
   }
 
   function init() {
-    var video = document.getElementById('aboutBgVideo');
+    var video = document.getElementById('aboutBgVideo') || document.getElementById('bgVideoWriteup');
     var button = document.getElementById('bgVideoToggle');
     var icon = document.getElementById('bgVideoToggleIcon');
 

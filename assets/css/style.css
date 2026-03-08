@@ -25,6 +25,9 @@
   opacity: 1;
 }
 @media (max-width:600px){
+  html:has(.writeup-page) .bg-video-toggle{
+    display: none !important;
+  }
   .swipe-indicator-glass {
     position: fixed;
     left: 0;
