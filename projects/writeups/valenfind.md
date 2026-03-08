@@ -11,7 +11,7 @@ tags:
   - SQLite
   - Web
   - Linux
-image: "https://cards.scryfall.io/art_crop/front/f/1/f1c38e02-5df3-4655-a18f-a7be2c352b7b.jpg?1562946016"
+image: "https://cards.scryfall.io/art_crop/front/2/b/2b0eb016-8842-4ff2-a202-f32213b06e18.jpg?1641069918"
 image_alt: "Heartfire art"
 date: 2026-02-18
 ---
