@@ -23,15 +23,13 @@ Advanced attacks where social engineering plays a central role in the attack pat
 
 The **XZ Utils backdoor incident in 2024** brought all of these elements together. It involved impressive technical creativity, a long and methodical social engineering campaign that unfolded over several years, and ultimately a fortunate discovery by a developer who noticed that SSH authentication suddenly took about **500 milliseconds longer than usual**.
 
-Sometimes half a second is enough to change the course of the internet.
-
-> **Note:** I am not deeply familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. For excellent deep-dives, I'd recommend [Veritasium's more approachable video on the incident](https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s) and/or [Denzel Farmer's more detailed technical lecture of the backdoor](https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s).
+> **Note:** I am not familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. I have studied this incident properly only for few days now. For excellent deep-dives, I'd recommend [Veritasium's more approachable video on the incident](https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s) and/or [Denzel Farmer's more detailed technical lecture of the backdoor](https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s).
 
 ## Supply Chain Attack via Dependencies
 
 Most people never think about `xz` or `liblzma` when talking about SSH. Atleast I never did.
 
-It is simply a compression library, one of many small utilities buried deep inside the dependency trees of most Linux distributions.
+It is simply a compression library (a very good one!), one of many small utilities buried deep inside the dependency trees of most Linux distributions.
 
 However, in many systems `liblzma` is linked by `libsystemd`, and `libsystemd` is in turn used by OpenSSH's `sshd` in distributions that integrate SSH with systemd features such as socket activation or service notifications.
 
@@ -45,7 +43,7 @@ This illustrates one of the core problems in supply chain security. Modern softw
 
 Keeping a complete mental model of every transitive dependency, every maintainer, every build step, and every release artifact across that entire stack is not an easy task.
 
-## Phase 1: The Long Con — Social Engineering Operation
+## Phase 1: The Long Con - Social Engineering Operation
 
 What makes this incident remarkable is that it was not primarily a technical exploit.
 
@@ -166,7 +164,7 @@ It also depended on a fairly specific chain of circumstances: the compromised re
 
 That combination explains why the threat was severe while also not instantly obvious across every Linux system.
 
-## Phase 4: Discovery — 500ms That Helped To Avoid Disaster
+## Phase 4: Discovery - 500ms That Helped To Avoid.. Bad Things
 
 In **March 2024**, **Andres Freund**, a PostgreSQL developer working at Microsoft, noticed something unusual.
 
@@ -202,17 +200,15 @@ And, inevitably, systemd managed to appear in the middle of the story.
 
 The discovery itself relied heavily on **individual curiosity and persistence**. There was no automated scanner that detected the backdoor. It was uncovered because one developer noticed a small performance anomaly and decided to investigate further.
 
-That is not exactly a scalable security model.
+That is not exactly a scalable security model. 
 
 This case highlights something that often goes unnoticed: a large portion of our global digital infrastructure depends on the work of **open-source maintainers**, many of whom are volunteers maintaining complex projects in their spare time.
 
-Lasse Collin maintained XZ Utils largely alone for years.
-
-That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.
+Lasse Collin maintained XZ Utils largely alone for years. That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.
 
 Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.
 
-Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week.
+Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week. Even while previous sentence is dramatized a bit, underlying idea is absurd to me.
 
 As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.
 

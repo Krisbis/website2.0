@@ -79,20 +79,19 @@
 <p>That mixture is both fascinating and unsettling.</p>
 <p>Advanced attacks where social engineering plays a central role in the attack path are especially interesting to me. They highlight something I consider a simple but uncomfortable truth: every one of us is inherently vulnerable. Given the right circumstances, timing, and pressure, people can be manipulated.</p>
 <p>The <strong>XZ Utils backdoor incident in 2024</strong> brought all of these elements together. It involved impressive technical creativity, a long and methodical social engineering campaign that unfolded over several years, and ultimately a fortunate discovery by a developer who noticed that SSH authentication suddenly took about <strong>500 milliseconds longer than usual</strong>.</p>
-<p>Sometimes half a second is enough to change the course of the internet.</p>
 <blockquote>
-<p><strong>Note:</strong> I am not deeply familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. For excellent deep-dives, I&#39;d recommend <a href="https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s">Veritasium&#39;s more approachable video on the incident</a> and/or <a href="https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s">Denzel Farmer&#39;s more detailed technical lecture of the backdoor</a>.</p>
+<p><strong>Note:</strong> I am not familiar with some of the most technical aspects of this incident, particularly around IFUNC symbol resolution and low-level dynamic linker mechanics. Some elements in this post are simplified. I have studied this incident properly only for few days now. For excellent deep-dives, I&#39;d recommend <a href="https://www.youtube.com/watch?v=aoag03mSuXQ&t=2909s">Veritasium&#39;s more approachable video on the incident</a> and/or <a href="https://www.youtube.com/watch?v=Q6ovtLdSbEA&t=3651s">Denzel Farmer&#39;s more detailed technical lecture of the backdoor</a>.</p>
 </blockquote>
 <h2>Supply Chain Attack via Dependencies</h2>
 <p>Most people never think about <code>xz</code> or <code>liblzma</code> when talking about SSH. Atleast I never did.</p>
-<p>It is simply a compression library, one of many small utilities buried deep inside the dependency trees of most Linux distributions.</p>
+<p>It is simply a compression library (a very good one!), one of many small utilities buried deep inside the dependency trees of most Linux distributions.</p>
 <p>However, in many systems <code>liblzma</code> is linked by <code>libsystemd</code>, and <code>libsystemd</code> is in turn used by OpenSSH&#39;s <code>sshd</code> in distributions that integrate SSH with systemd features such as socket activation or service notifications.</p>
 <p>This creates an unexpected path.</p>
 <p>SSH itself did not depend on XZ. Yet the runtime environment ended up loading code from that library.</p>
 <p>The attack surface was therefore not SSH itself, but a compression library sitting several layers down the dependency chain that SSH never explicitly requested.</p>
 <p>This illustrates one of the core problems in supply chain security. Modern software rarely depends only on what developers believe it depends on. It depends on what those dependencies depend on, and what <em>those</em> dependencies depend on, recursively.</p>
 <p>Keeping a complete mental model of every transitive dependency, every maintainer, every build step, and every release artifact across that entire stack is not an easy task.</p>
-<h2>Phase 1: The Long Con — Social Engineering Operation</h2>
+<h2>Phase 1: The Long Con - Social Engineering Operation</h2>
 <p>What makes this incident remarkable is that it was not primarily a technical exploit.</p>
 <p>It was patience.</p>
 <p>A developer using the name <strong>Jia Tan</strong> (GitHub handle <code>JiaT75</code>) began contributing to the XZ Utils project around <strong>2021</strong>.</p>
@@ -161,11 +160,11 @@ RSA_public_decrypt()
 Checks hand-crafted RSA certificate
 with signed attacker input
          |
-    +----+----+
-    |         |
-   Yes        No
-    |         |
-    v         v
+    +----+-----------------+
+    |                      |
+   Yes                     No
+    |                      |
+    v                      v
 Potentially alter   Continue normal
 auth behavior       SSH auth flow
 </code></pre>
@@ -174,7 +173,7 @@ auth behavior       SSH auth flow
 <p>This conditional behavior is part of what made the backdoor so difficult to notice in regular use.</p>
 <p>It also depended on a fairly specific chain of circumstances: the compromised release tarball, the right build environment, the resulting malicious <code>liblzma</code>, and an SSH build that loaded <code>libsystemd</code> and therefore <code>liblzma</code>.</p>
 <p>That combination explains why the threat was severe while also not instantly obvious across every Linux system.</p>
-<h2>Phase 4: Discovery — 500ms That Helped To Avoid Disaster</h2>
+<h2>Phase 4: Discovery - 500ms That Helped To Avoid.. Bad Things</h2>
 <p>In <strong>March 2024</strong>, <strong>Andres Freund</strong>, a PostgreSQL developer working at Microsoft, noticed something unusual.</p>
 <p>SSH logins on his system were taking roughly <strong>half a second longer</strong> than expected.</p>
 <p>That small delay might not have caught most people&#39;s attention.</p>
@@ -192,12 +191,11 @@ auth behavior       SSH auth flow
 <p>You could audit SSH and systemd extensively and still miss a threat living two layers deeper in the stack.</p>
 <p>And, inevitably, systemd managed to appear in the middle of the story.</p>
 <p>The discovery itself relied heavily on <strong>individual curiosity and persistence</strong>. There was no automated scanner that detected the backdoor. It was uncovered because one developer noticed a small performance anomaly and decided to investigate further.</p>
-<p>That is not exactly a scalable security model.</p>
+<p>That is not exactly a scalable security model. </p>
 <p>This case highlights something that often goes unnoticed: a large portion of our global digital infrastructure depends on the work of <strong>open-source maintainers</strong>, many of whom are volunteers maintaining complex projects in their spare time.</p>
-<p>Lasse Collin maintained XZ Utils largely alone for years.</p>
-<p>That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.</p>
+<p>Lasse Collin maintained XZ Utils largely alone for years. That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.</p>
 <p>Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.</p>
-<p>Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week.</p>
+<p>Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week. Even while previous sentence is dramatized a bit, underlying idea is absurd to me.</p>
 <p>As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.</p>
 <p>Nation-state actors (attribution in this case remains inconclusive) have strong incentives to pursue attacks like this. Successfully inserting themselves into widely deployed infrastructure can provide what is effectively a “keys to the kingdom” type of access. Instead of targeting individual organizations, compromising a shared component in the software supply chain allows attackers to position themselves upstream of thousands of potential targets.</p>
 <p>From a defensive perspective, incidents like this also highlight the value of security models such as Zero Trust. Even if the backdoor had reached stable releases, it would most likely have served only as an <strong>initial foothold</strong>. An attacker would still need to navigate internal monitoring, access controls, and segmentation within the target environment.</p>
