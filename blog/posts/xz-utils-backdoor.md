@@ -129,30 +129,29 @@ Conceptually, the idea is simpler than the implementation:
 
 ```text
 Client connects to sshd
-        |
-        v
-  patched sshd loads libsystemd
-          |
-          v
-   libsystemd loads liblzma
-          |
-          v
-  sshd reaches RSA verification
-        |
-        v
-backdoored liblzma redirects
+         |
+         v
+Patched sshd loads libsystemd
+         |
+         v
+libsystemd loads liblzma
+         |
+         v
+sshd reaches RSA verification
+         |
+         v
+Backdoored liblzma redirects
 RSA_public_decrypt()
-        |
-        v
-Checks for a hand-crafted
- RSA certificate carrying
- signed attacker input
-        |
-   +----+----+
-   |         |
-  Yes        No
-   |         |
-   v         v
+         |
+         v
+Checks hand-crafted RSA certificate
+with signed attacker input
+         |
+    +----+-----------------+
+    |                      |
+   Yes                     No
+    |                      |
+    v                      v
 Potentially alter   Continue normal
 auth behavior       SSH auth flow
 ```
@@ -167,7 +166,7 @@ It also depended on a fairly specific chain of circumstances: the compromised re
 
 That combination explains why the threat was severe while also not instantly obvious across every Linux system.
 
-## Phase 4: Discovery — 500ms That Saved the Internet
+## Phase 4: Discovery — 500ms That Helped To Avoid Disaster
 
 In **March 2024**, **Andres Freund**, a PostgreSQL developer working at Microsoft, noticed something unusual.
 
@@ -214,6 +213,16 @@ That situation is not unusual in open source. Passion projects maintained by a h
 Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.
 
 Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week.
+
+As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.
+
+Nation-state actors (attribution in this case remains inconclusive) have strong incentives to pursue attacks like this. Successfully inserting themselves into widely deployed infrastructure can provide what is effectively a “keys to the kingdom” type of access. Instead of targeting individual organizations, compromising a shared component in the software supply chain allows attackers to position themselves upstream of thousands of potential targets.
+
+From a defensive perspective, incidents like this also highlight the value of security models such as Zero Trust. Even if the backdoor had reached stable releases, it would most likely have served only as an **initial foothold**. An attacker would still need to navigate internal monitoring, access controls, and segmentation within the target environment.
+
+Still, the scale of what might have happened is difficult to ignore. Had the compromised versions propagated into stable distributions, this could have quietly turned into the early stage of a large-scale intelligence or espionage operation.
+
+Thankfully, in this case, it didn’t.
 
 ## Source Context
 

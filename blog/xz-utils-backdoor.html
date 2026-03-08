@@ -143,30 +143,29 @@
 <p>Freund&#39;s analysis showed this redirection happening in the <code>sshd</code> authentication path. He was careful not to claim every detail of the final payload behavior was fully reverse engineered at the time, but he concluded it likely enabled unauthorized access or remote code execution in a pre-authentication context.</p>
 <p>Conceptually, the idea is simpler than the implementation:</p>
 <pre><code class="language-text">Client connects to sshd
-        |
-        v
-  patched sshd loads libsystemd
-          |
-          v
-   libsystemd loads liblzma
-          |
-          v
-  sshd reaches RSA verification
-        |
-        v
-backdoored liblzma redirects
+         |
+         v
+Patched sshd loads libsystemd
+         |
+         v
+libsystemd loads liblzma
+         |
+         v
+sshd reaches RSA verification
+         |
+         v
+Backdoored liblzma redirects
 RSA_public_decrypt()
-        |
-        v
-Checks for a hand-crafted
- RSA certificate carrying
- signed attacker input
-        |
-   +----+----+
-   |         |
-  Yes        No
-   |         |
-   v         v
+         |
+         v
+Checks hand-crafted RSA certificate
+with signed attacker input
+         |
+    +----+----+
+    |         |
+   Yes        No
+    |         |
+    v         v
 Potentially alter   Continue normal
 auth behavior       SSH auth flow
 </code></pre>
@@ -175,7 +174,7 @@ auth behavior       SSH auth flow
 <p>This conditional behavior is part of what made the backdoor so difficult to notice in regular use.</p>
 <p>It also depended on a fairly specific chain of circumstances: the compromised release tarball, the right build environment, the resulting malicious <code>liblzma</code>, and an SSH build that loaded <code>libsystemd</code> and therefore <code>liblzma</code>.</p>
 <p>That combination explains why the threat was severe while also not instantly obvious across every Linux system.</p>
-<h2>Phase 4: Discovery — 500ms That Saved the Internet</h2>
+<h2>Phase 4: Discovery — 500ms That Helped To Avoid Disaster</h2>
 <p>In <strong>March 2024</strong>, <strong>Andres Freund</strong>, a PostgreSQL developer working at Microsoft, noticed something unusual.</p>
 <p>SSH logins on his system were taking roughly <strong>half a second longer</strong> than expected.</p>
 <p>That small delay might not have caught most people&#39;s attention.</p>
@@ -199,6 +198,11 @@ auth behavior       SSH auth flow
 <p>That situation is not unusual in open source. Passion projects maintained by a handful of people quietly underpin enormous parts of the modern internet.</p>
 <p>Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.</p>
 <p>Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week.</p>
+<p>As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.</p>
+<p>Nation-state actors (attribution in this case remains inconclusive) have strong incentives to pursue attacks like this. Successfully inserting themselves into widely deployed infrastructure can provide what is effectively a “keys to the kingdom” type of access. Instead of targeting individual organizations, compromising a shared component in the software supply chain allows attackers to position themselves upstream of thousands of potential targets.</p>
+<p>From a defensive perspective, incidents like this also highlight the value of security models such as Zero Trust. Even if the backdoor had reached stable releases, it would most likely have served only as an <strong>initial foothold</strong>. An attacker would still need to navigate internal monitoring, access controls, and segmentation within the target environment.</p>
+<p>Still, the scale of what might have happened is difficult to ignore. Had the compromised versions propagated into stable distributions, this could have quietly turned into the early stage of a large-scale intelligence or espionage operation.</p>
+<p>Thankfully, in this case, it didn’t.</p>
 <h2>Source Context</h2>
 <p>To show how this incident was initially communicated and how the broader community started analyzing it, I&#39;m including an excerpt of the raw source context below as a reference block. This is not meant to be read straight through like the rest of the post, but it helps show the research trail from the initial oss-security disclosure into later technical writeups.</p>
 <pre><code class="language-text">[Openwall](https://www.openwall.com/) 
