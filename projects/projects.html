@@ -64,7 +64,7 @@
           <circle cx="12" cy="7.6" r="1.1" fill="currentColor" />
         </svg>
       </button>
-      <div class="glass-tooltip" id="projects-info-tooltip" role="tooltip">
+      <div class="glass-tooltip" id="projects-info-tooltip" role="tooltip" aria-hidden="true">
         I just want to give a shoutout to the creator of this awesome card design that I implemented here with a few minor modifications. This element ended up inspiring much of the overall theme and visual direction of the site:
         <a href="https://codepen.io/lessthanthree/pen/LENwGyZ" target="_blank" rel="noopener noreferrer">https://codepen.io/lessthanthree/pen/LENwGyZ</a>
       </div>
@@ -192,39 +192,7 @@
   <script src="../assets/js/title-glitch.js"></script>
   <script src="../assets/js/loader.js"></script>
   <script src="../assets/js/projects-filter.js"></script>
-  <script>
-    (function(){
-      var buttons = Array.prototype.slice.call(document.querySelectorAll('.glass-info'));
-      if(!buttons.length) return;
-
-      function setOpen(btn, open){
-        btn.classList.toggle('is-open', open);
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      }
-
-      function closeAll(except){
-        buttons.forEach(function(btn){
-          if(btn !== except) setOpen(btn, false);
-        });
-      }
-
-      buttons.forEach(function(btn){
-        btn.addEventListener('click', function(e){
-          e.preventDefault();
-          e.stopPropagation();
-          var nowOpen = !btn.classList.contains('is-open');
-          closeAll(btn);
-          setOpen(btn, nowOpen);
-        });
-      });
-
-      document.addEventListener('click', function(e){
-        var t = e.target;
-        if(t && t.closest && (t.closest('.glass-info') || t.closest('.glass-tooltip'))) return;
-        closeAll();
-      });
-    })();
-  </script>
+  <script src="../assets/js/projects-info-tooltip.js"></script>
 </body>
 </html>
 <!-- https://cards.scryfall.io/art_crop/front/a/b/abdd053f-87ea-4cc8-b3df-a0c69c798d57.jpg?1678736299-->
