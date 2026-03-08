@@ -1967,6 +1967,27 @@ a.previewCard{
   }
 }
 
+/* Blog post readability tweaks */
+body.blog-post-page .bg-overlay-glass{
+  background: rgba(10,14,22,0.38);
+  backdrop-filter: blur(14px) saturate(1.06);
+}
+
+body.blog-post-page .writeup-container.glass-content{
+  background: rgba(12,16,24,0.62);
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 10px 42px rgba(0,0,0,0.3);
+}
+
+body.blog-post-page .writeup-body{
+  color: rgba(230,236,242,0.92);
+}
+
+body.blog-post-page .writeup-body h2,
+body.blog-post-page .writeup-body h3{
+  color: rgba(235,240,245,0.95);
+}
+
 /* ── Blog cards ────────────────────────────────────────────── */
 
 /* Allow scrolling on blog page */
