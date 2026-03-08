@@ -98,7 +98,7 @@
 <p>Inspecting the dashboard source revealed a JavaScript function that loads layout themes dynamically:</p>
 <pre><code class="language-javascript">fetch(`/api/fetch_layout?layout=${layoutName}`)
 </code></pre>
-<p>Classic file inclusion territory. No filtering at all — basic directory traversal worked on the first try:</p>
+<p>Classic file inclusion territory. No filtering at all. Basic directory traversal worked on the first try (well, almost first, since i had small troubles finding out where I was located in the filesystem):</p>
 <pre><code>http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../etc/passwd
 </code></pre>
 <p>The server dumped <code>/etc/passwd</code>. LFI confirmed.</p>
