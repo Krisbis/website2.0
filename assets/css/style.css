@@ -1982,15 +1982,6 @@ body.blog-post-page .writeup-container.glass-content{
   box-shadow: 0 10px 42px rgba(0,0,0,0.3);
 }
 
-body.blog-post-page .writeup-body{
-  color: rgba(230,236,242,0.92);
-}
-
-body.blog-post-page .writeup-body h2,
-body.blog-post-page .writeup-body h3{
-  color: rgba(235,240,245,0.95);
-}
-
 /* ── Blog cards ────────────────────────────────────────────── */
 
 /* Allow scrolling on blog page */
