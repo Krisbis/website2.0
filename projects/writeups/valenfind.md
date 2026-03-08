@@ -47,7 +47,7 @@ Inspecting the dashboard source revealed a JavaScript function that loads layout
 fetch(`/api/fetch_layout?layout=${layoutName}`)
 ```
 
-Classic file inclusion territory. No filtering at all — basic directory traversal worked on the first try:
+Classic file inclusion territory. No filtering at all. Basic directory traversal worked on the first try (well, almost first, since i had small troubles finding out where I was located in the filesystem):
 
 ```
 http://MACHINE_IP:5000/api/fetch_layout?layout=../../../../etc/passwd
