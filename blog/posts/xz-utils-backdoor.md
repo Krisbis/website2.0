@@ -208,7 +208,7 @@ Lasse Collin maintained XZ Utils largely alone for years. That situation is not 
 
 Organizations that build products and infrastructure on top of these projects benefit immensely from that work. Supporting maintainers, whether financially, through engineering resources, or through security review efforts, would help make the ecosystem more sustainable.
 
-Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week. Even while previous sentence is dramatized a bit, underlying idea is absurd to me.
+Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week. Even though that sentence is somewhat dramatized, the underlying idea still feels absurd to me.
 
 As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.
 
