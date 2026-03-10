@@ -210,7 +210,9 @@ Organizations that build products and infrastructure on top of these projects be
 
 Because right now, the stability and security of critical infrastructure sometimes depends on whether a single overworked maintainer happens to have enough time that week. Even though that sentence is somewhat dramatized, the underlying idea still feels absurd to me.
 
-As a closing note, the XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.
+## Closing note
+
+The XZ incident is unlikely to be the first or the last critical supply chain compromise affecting open-source infrastructure.
 
 Nation-state actors (attribution in this case remains inconclusive) have strong incentives to pursue attacks like this. Successfully inserting themselves into widely deployed infrastructure can provide what is effectively a “keys to the kingdom” type of access. Instead of targeting individual organizations, compromising a shared component in the software supply chain allows attackers to position themselves upstream of thousands of potential targets.
 
