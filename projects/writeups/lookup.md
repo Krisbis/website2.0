@@ -4,7 +4,6 @@ difficulty: Easy
 environment: Linux & Web
 tags:
   - ffuf
-  - Enumeration
   - Subdomain
   - elFinder
   - CVE-2019-9194
