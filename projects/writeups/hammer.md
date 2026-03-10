@@ -57,7 +57,7 @@ This reveals `/hmr_logs` which contains `error.logs` (Apache error logs). Inside
 
 - `tester@hammer.thm`
 
-Before finding the email in logs, I checked whether the login page allowed username enumeration. It did not — the error message is static:
+Before finding the email in logs, I checked whether the login page allowed username enumeration. It did not, the error message is static:
 
 > "user OR password is wrong"
 
