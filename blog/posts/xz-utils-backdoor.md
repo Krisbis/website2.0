@@ -19,7 +19,7 @@ One of my favourite quotes from *Darknet Diaries* is *"when truth is stranger th
 
 That mixture is both fascinating and unsettling.
 
-Advanced attacks where social engineering plays a central role in the attack path are especially interesting to me. They highlight something I consider a simple but uncomfortable truth: every one of us is inherently vulnerable. Given the right circumstances, timing, and pressure, people can be manipulated.
+Advanced attacks where social engineering plays a central role in the attack path are especially interesting to me. They highlight something I consider a simple but uncomfortable truth: given the right circumstances, timing, and pressure, everyone can be manipulated by motivated and resourceful attacker. More vigilant one is, more resources needs to be tied in compromising the target.
 
 The **XZ Utils backdoor incident in 2024** brought all of these elements together. It involved impressive technical creativity, a long and methodical social engineering campaign that unfolded over several years, and ultimately a fortunate discovery by a developer who noticed that SSH authentication suddenly took about **500 milliseconds longer than usual**.
 
