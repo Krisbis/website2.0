@@ -198,13 +198,17 @@ What this script does (and why it works):
 - If rate limited, it rotates to a new session and continues.
 - Detects success by checking page content (recovery form disappears / new password form appears) rather than relying only on status codes.
 
-After the OTP is accepted and the password is reset, I logged in as the user. It drops you on `/execute_command.php` which contains a command input box.
+Once the correct OTP is accepted, the script returns the valid `PHPSESSID`. I can then manually set this value as my session cookie in DevTools, effectively taking over the authenticated session. From there I reset the account password and log in as the user.
 
-The command execution is very restricted: `ls` works and lists directory contents, but most other commands (like `cat`) are blocked. The app also auto-logins you again after a short time.
+After authentication, the application redirects to `/execute_command.php`, which contains a **command input field**, allowing commands to be executed on the server.
+
+The command execution is very restricted: `ls` works and lists directory contents, but most other commands (like `cat`) are blocked. The app also auto-logoffs you after a short time.
+
+At first I tried to stabilize the login by manipulating whatever was causing the automatic logoffs. While poking around with Burp I noticed the cookie `persistentSession=no`, so I tried flipping it to `yes`. Unfortunately that logic was enforced **server-side**, so changing it client-side had no effect. In the end I just accepted the annoyance of logging in every ~10 seconds and continued enumerating the application.
 
 ### Privilege Escalation & RCE
 
-After logging in, the app issues a JWT containing a claim like `role: user`. The JWT header includes a `kid` value that points at a file path.
+After messing around for a while I took a closer look at the JWT. This challenge was part of a TryHackMe learning path and I still had the **JWT room wisdom** fresh in my mind. The application issues a JWT containing a claim like `role: user`, and the header includes a `kid` field that points to a file path.
 
 I inspected and modified the token using `jwt.io` (you can also do this programmatically with PyJWT).
 
@@ -216,7 +220,7 @@ Because it’s in the web root, it’s directly downloadable:
 
 - `http://hammer.thm/188ade1.key`
 
-Key contents (`adekey`):
+Key contents:
 
 ```
 56058354efb3daa97ebab00fabd7a7d7
@@ -227,6 +231,15 @@ With that key, we can forge a new JWT:
 - In the **payload**, change `role` to `admin`
 - In the **header**, set `kid` to the discovered key path/name
 - Sign the token with the downloaded key
+
+> **Short lecture about what the key we found actually is:**  
+> A JWT works a bit like a *digitally signed note*. The server writes some information (like `role: user`) and then signs it with a *secret key*. When the token comes back later, the server checks the signature with the same key to confirm the note hasn’t been altered.  
+>
+> In this lab, that *secret signing key was sitting in the web root*, meaning anyone who discovered the file could download it. Once you have the signing key, you can write your own note. For example, changing `role: user` to `role: admin` and sign it with the same key. Because the signature is valid, the server trusts the token and accepts the modified privileges.  
+>
+> In detail: JWTs include an `alg` property in the JWT header, which tells the server *which algorithm to use for signing and verifying the token*. For example, `HS256` uses a shared secret with HMAC, while `RS256` uses a private key to sign and a public key to verify. This value is critical because it determines how the server checks the token’s integrity.  
+>
+> In this case, the JWT used `alg: HS256`, meaning it is signed with a *shared secret* using HMAC. The server, and anyone who knows the key, can both generate and verify tokens. *Security of the token entirely depends on keeping the signing key secret*.
 
 Example forging with PyJWT:
 

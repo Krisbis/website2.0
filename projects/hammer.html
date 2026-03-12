@@ -245,10 +245,12 @@ if __name__ == &quot;__main__&quot;:
 <li>If rate limited, it rotates to a new session and continues.</li>
 <li>Detects success by checking page content (recovery form disappears / new password form appears) rather than relying only on status codes.</li>
 </ul>
-<p>After the OTP is accepted and the password is reset, I logged in as the user. It drops you on <code>/execute_command.php</code> which contains a command input box.</p>
-<p>The command execution is very restricted: <code>ls</code> works and lists directory contents, but most other commands (like <code>cat</code>) are blocked. The app also auto-logins you again after a short time.</p>
+<p>Once the correct OTP is accepted, the script returns the valid <code>PHPSESSID</code>. I can then manually set this value as my session cookie in DevTools, effectively taking over the authenticated session. From there I reset the account password and log in as the user.</p>
+<p>After authentication, the application redirects to <code>/execute_command.php</code>, which contains a <strong>command input field</strong>, allowing commands to be executed on the server.</p>
+<p>The command execution is very restricted: <code>ls</code> works and lists directory contents, but most other commands (like <code>cat</code>) are blocked. The app also auto-logoffs you after a short time.</p>
+<p>At first I tried to stabilize the login by manipulating whatever was causing the automatic logoffs. While poking around with Burp I noticed the cookie <code>persistentSession=no</code>, so I tried flipping it to <code>yes</code>. Unfortunately that logic was enforced <strong>server-side</strong>, so changing it client-side had no effect. In the end I just accepted the annoyance of logging in every ~10 seconds and continued enumerating the application.</p>
 <h3>Privilege Escalation &amp; RCE</h3>
-<p>After logging in, the app issues a JWT containing a claim like <code>role: user</code>. The JWT header includes a <code>kid</code> value that points at a file path.</p>
+<p>After messing around for a while I took a closer look at the JWT. This challenge was part of a TryHackMe learning path and I still had the <strong>JWT room wisdom</strong> fresh in my mind. The application issues a JWT containing a claim like <code>role: user</code>, and the header includes a <code>kid</code> field that points to a file path.</p>
 <p>I inspected and modified the token using <code>jwt.io</code> (you can also do this programmatically with PyJWT).</p>
 <p>From the command box, running <code>ls</code> revealed a signing key file in the web root:</p>
 <ul>
@@ -258,7 +260,7 @@ if __name__ == &quot;__main__&quot;:
 <ul>
 <li><code>http://hammer.thm/188ade1.key</code></li>
 </ul>
-<p>Key contents (<code>adekey</code>):</p>
+<p>Key contents:</p>
 <pre><code>56058354efb3daa97ebab00fabd7a7d7
 </code></pre>
 <p>With that key, we can forge a new JWT:</p>
@@ -267,6 +269,12 @@ if __name__ == &quot;__main__&quot;:
 <li>In the <strong>header</strong>, set <code>kid</code> to the discovered key path/name</li>
 <li>Sign the token with the downloaded key</li>
 </ul>
+<blockquote>
+<p><strong>Short lecture about what the key we found actually is:</strong><br>A JWT works a bit like a <em>digitally signed note</em>. The server writes some information (like <code>role: user</code>) and then signs it with a <em>secret key</em>. When the token comes back later, the server checks the signature with the same key to confirm the note hasn’t been altered.  </p>
+<p>In this lab, that <em>secret signing key was sitting in the web root</em>, meaning anyone who discovered the file could download it. Once you have the signing key, you can write your own note. For example, changing <code>role: user</code> to <code>role: admin</code> and sign it with the same key. Because the signature is valid, the server trusts the token and accepts the modified privileges.  </p>
+<p>In detail: JWTs include an <code>alg</code> property in the JWT header, which tells the server <em>which algorithm to use for signing and verifying the token</em>. For example, <code>HS256</code> uses a shared secret with HMAC, while <code>RS256</code> uses a private key to sign and a public key to verify. This value is critical because it determines how the server checks the token’s integrity.  </p>
+<p>In this case, the JWT used <code>alg: HS256</code>, meaning it is signed with a <em>shared secret</em> using HMAC. The server, and anyone who knows the key, can both generate and verify tokens. <em>Security of the token entirely depends on keeping the signing key secret</em>.</p>
+</blockquote>
 <p>Example forging with PyJWT:</p>
 <pre><code class="language-python">import jwt
 
