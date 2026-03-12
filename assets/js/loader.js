@@ -8,7 +8,7 @@
 
     const phrases = [
       'Testing in prod...',
-      '"I will now inject the shellcode", said the doctor\n\n"Wait what?", I queried politely. ',
+      '"I will now inject the shellcode", said the doctor\n\nMe: "Wait what?"',
       'Data breach = decentralized surprise backup',
       'Removing -rf / -fr -fr -nocap',
       'Discombobulating...',
