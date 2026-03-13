@@ -1,0 +1,202 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; connect-src 'self' cdn.jsdelivr.net;" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
+  <title>Acronym Quiz</title>
+  <meta name="description" content="Cybersecurity acronym quiz - test your knowledge across 9 categories and 270+ questions.">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/acronym-quiz.css">
+</head>
+<body>
+  <!-- Loader overlay (CLI style) -->
+  <div id="loader-overlay">
+    <div class="loader-cli">
+      <div class="loader-cli-line"><span id="loader-cli-bar"></span></div>
+      <div class="loader-cli-line" id="loader-cli-label">[sudo] updating &amp; upgrading...</div>
+      <div class="loader-cli-phrase" id="loader-phrase">Initializing...</div>
+    </div>
+  </div>
+
+  <!-- Background video and glassy overlay -->
+  <div class="bg-video-wrapper" aria-hidden="true">
+    <img class="bg-video" src="assets/images/burning_coals.png" alt="">
+    <div class="bg-overlay-glass"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav id="site-navbar" class="navbar navbar-expand-lg navbar-dark bg-transparent px-4">
+    <div class="container-fluid">
+      <a class="navbar-brand autograph autograph-painter p-0" href="index.html">xorxorplain</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="projects/projects.html">Projects</a></li>
+          <li class="nav-item"><a class="nav-link" href="blog/index.html">Blog</a></li>
+          <li class="nav-item"><a class="nav-link active" href="acronym-quiz.html">The Grill</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-5 text-light">
+    <div id="quiz-root" class="glass-content">
+
+      <h1 class="h3">Acronym Quiz</h1>
+      <p class="text-muted">Test your knowledge across 9 categories and 3 difficulty tiers.</p>
+
+      <!-- Status bar -->
+      <div id="statusbar">
+        <div class="sb-left">
+          <div class="sb-dot"></div>
+          <span id="sb-category">// STANDBY</span>
+        </div>
+        <div class="sb-right">
+          <span id="sb-score">SCORE: 0</span>
+          <span id="sb-time">00:00:00</span>
+        </div>
+      </div>
+
+      <!-- HOME SCREEN -->
+      <div id="screen-home" class="qz-screen active">
+        <div class="qz-hero">
+          <div class="qz-hero-title">WELCOME TO THE <span class="fire">GRILL</span></div>
+          <p class="qz-hero-sub">IT has a ridiculous amount of acronyms across different domains. No hints. No context. No mercy. Can you survive the letter soup without sweating?</p>
+        </div>
+
+        <div class="qz-stats-row">
+          <div class="qz-stat-item"><span id="total-q-count" class="qz-stat-num">270+</span><span class="qz-stat-lbl">Questions</span></div>
+          <div class="qz-stat-item"><span class="qz-stat-num">9</span><span class="qz-stat-lbl">Categories</span></div>
+          <div class="qz-stat-item"><span class="qz-stat-num">3</span><span class="qz-stat-lbl">Difficulties</span></div>
+        </div>
+
+        <div class="qz-section-label">Select Category</div>
+        <div id="cat-grid" class="cat-grid"></div>
+        <button id="coal-stare-btn" class="coal-stare-btn" type="button">Nah, I'll stare at the image of burning coals for the vibes</button>
+      </div>
+
+      <!-- DIFFICULTY SCREEN -->
+      <div id="screen-difficulty" class="qz-screen">
+        <button id="back-btn" class="qz-back-btn">&lt; BACK</button>
+        <div class="diff-header">
+          <div id="diff-name" class="diff-cat-name"></div>
+          <div id="diff-sub" class="diff-cat-sub"></div>
+        </div>
+        <div class="diff-grid">
+          <div id="diff-easy" class="diff-card easy">
+            <span class="diff-name">Easy</span>
+            <span id="diff-easy-count" class="diff-info">10 questions</span>
+          </div>
+          <div id="diff-medium" class="diff-card medium">
+            <span class="diff-name">Medium</span>
+            <span id="diff-med-count" class="diff-info">10 questions</span>
+          </div>
+          <div id="diff-hard" class="diff-card hard">
+            <span class="diff-name">Hard</span>
+            <span id="diff-hard-count" class="diff-info">10 questions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUIZ SCREEN -->
+      <div id="screen-quiz" class="qz-screen">
+        <div class="quiz-topbar">
+          <div class="quiz-meta"><strong id="qm-cat"></strong> &middot; <span id="qm-diff"></span></div>
+          <button id="quit-btn" class="quit-btn">QUIT</button>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>PROGRESS</span>
+            <span id="prog-text">0 / 10</span>
+          </div>
+          <div class="progress-track"><div id="prog-fill" class="progress-fill" style="width:0%"></div></div>
+          <div id="prog-segs" class="progress-segments"></div>
+        </div>
+
+        <div id="q-card" class="q-card">
+          <span id="q-number" class="q-number">QUESTION 1 OF 10</span>
+          <span id="q-acronym" class="q-acronym">&mdash;</span>
+          <span class="q-prompt">What does this acronym stand for?</span>
+        </div>
+
+        <div id="answers-grid" class="answers-grid"></div>
+
+        <div id="feedback-bar" class="feedback-bar">
+          <span id="feedback-icon"></span>
+          <span id="feedback-text"></span>
+        </div>
+
+        <button id="next-btn" class="next-btn">NEXT QUESTION</button>
+      </div>
+
+      <!-- RESULTS SCREEN -->
+      <div id="screen-results" class="qz-screen">
+        <div id="res-grade" class="result-grade">&mdash;</div>
+        <div id="res-verdict" class="result-verdict"></div>
+
+        <div class="result-score-box">
+          <div id="res-score" class="result-big-score">0<span> pts</span></div>
+          <div id="res-sub" class="result-sub"></div>
+        </div>
+
+        <div class="result-breakdown">
+          <div class="rb-item c"><span id="rb-correct" class="rb-num">0</span><span class="rb-lbl">Correct</span></div>
+          <div class="rb-item w"><span id="rb-wrong" class="rb-num">0</span><span class="rb-lbl">Wrong</span></div>
+          <div class="rb-item a"><span id="rb-acc" class="rb-num">0%</span><span class="rb-lbl">Accuracy</span></div>
+        </div>
+
+        <div class="result-btns">
+          <button id="retry-btn" class="r-btn primary">RETRY</button>
+          <button id="change-diff-btn" class="r-btn">CHANGE DIFFICULTY</button>
+          <button id="home-btn" class="r-btn">HOME</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="coal-prompt" class="glass-content coal-prompt" role="dialog" aria-live="polite" aria-label="Coals mode prompt">
+      <p id="coal-prompt-question" class="coal-prompt-question">Do you still want to stare at the coals or.. ?</p>
+      <div class="coal-prompt-actions">
+        <button id="coal-yes-btn" class="r-btn primary" type="button">Yes</button>
+        <button id="coal-no-btn" class="r-btn" type="button">No</button>
+      </div>
+    </div>
+
+    <div id="grill-prompt" class="glass-content coal-prompt" role="dialog" aria-live="polite" aria-label="Grill prompt">
+      <p class="coal-prompt-question">Want something to grill?</p>
+      <div class="coal-prompt-actions">
+        <button id="grill-yes-btn" class="r-btn primary" type="button">Yes</button>
+        <button id="grill-no-btn" class="r-btn" type="button">No</button>
+      </div>
+    </div>
+
+    <div id="grill-sausage" class="grill-sausage" aria-hidden="true">
+      <img src="assets/images/hk-sininen-lenkki-perinteinen-580-g.avif" alt="Sausage on the grill" draggable="false">
+    </div>
+
+    <div id="grill-msg" class="glass-content coal-prompt" role="status" aria-live="polite">
+      <p class="coal-prompt-question">Don't mind if I do</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/title-glitch.js"></script>
+  <script src="assets/js/loader.js"></script>
+  <script src="assets/js/acronym-quiz.js"></script>
+</body>
+</html>
