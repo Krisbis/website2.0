@@ -86,35 +86,13 @@
     return Math.round(n / (1024 * 1024)) + 'M';
   }
 
-  /* ─── whoami riddle machine ─── */
-  const RIDDLES = [
-    { q: 'I soar without wings, I see without eyes. I\'ve traveled the universe to and fro. I\'ve conquered the world, yet I\'ve never been anywhere but home.', a: 'Your imagination' },
-    { q: 'I build bridges no one can cross, I tear down walls no one can see. Kings beg for me, yet the lonely own me most.', a: 'Hope' },
-    { q: 'I arrive uninvited and leave without warning. I make the strong weak and the brave retreat. Even the wise cannot outrun me.', a: 'Fear' },
-    { q: 'I have no voice, yet I teach every generation. I have no body, yet I live longer than any king. Burn me, and I only grow stronger.', a: 'An idea' },
-    { q: 'I am the parent of all invention, the spark behind every revolution. I gnaw at the comfortable and drive the restless forward.', a: 'Curiosity' },
-    { q: 'Everyone hears me but no one sees me. I only speak when spoken to. I repeat everything yet know nothing.', a: 'An echo' },
-    { q: 'I follow every leader and precede every fall. I am given freely but never returned. The more you chase me, the faster I slip away.', a: 'Trust' },
-    { q: 'I am weightless, yet the strongest person cannot hold me for more than a few minutes.', a: 'Your breath' },
-    { q: 'I am the space between thoughts, the pause between breaths. Seek me and I expand; ignore me and I vanish.', a: 'Silence'},
-    { q: 'I am not alive, yet I grow. I don\'t have lungs, yet I need air. I don\'t have a mouth, yet water kills me.', a: 'Fire' },
-    { q: 'I am both prison and protection. Without me you are exposed; with too much of me you suffocate.', a: 'Ego'},
-    { q: 'The more you define me, the less of me remains. I live only in uncertainty.', a: 'Mystery' }
-  ];
-
-  let pendingPrompt = null; // { type: 'whoami', answer: string }
-
   const commands = {
     help() {
       return [
         'Available commands: help, whoami, id, uname, date, pwd, ls, cat, cd, touch, write, rm, base64, theme, projects, contact, echo, clear'
       ];
     },
-    whoami() {
-      const riddle = RIDDLES[Math.floor(Math.random() * RIDDLES.length)];
-      pendingPrompt = { type: 'whoami', answer: riddle.a };
-      return [riddle.q, '', 'Display answer? (y/n)'];
-    },
+    whoami() { return ['user']; },
     id() { return ['uid=1000(user) gid=1000(user) groups=1000(user)']; },
     date() { return [new Date().toString()] },
     uname(args) {
@@ -443,19 +421,6 @@
   }
 
   function runCommand(raw) {
-    // handle pending y/n prompts first
-    if (pendingPrompt) {
-      const answer = raw.trim().toLowerCase();
-      appendLine('user@null:~$ ' + raw, 'user-cmd');
-      if (answer === 'y' || answer === 'yes') {
-        appendLine(pendingPrompt.answer);
-      } else {
-        appendLine('Answer hidden.');
-      }
-      pendingPrompt = null;
-      return;
-    }
-
     const parts = raw.trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return;
     const cmd = parts[0].toLowerCase();
