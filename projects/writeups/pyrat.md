@@ -4,7 +4,6 @@ difficulty: Easy
 environment: Linux
 tags:
   - Python
-  - Reverse Shell
   - Git
   - SSH
   - Brute Force
