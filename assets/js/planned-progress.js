@@ -1,4 +1,7 @@
 (function(){
+  // Extra untracked completed boxes to include in the displayed count.
+  var EXTRA_COMPLETED = 8;
+
   function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
 
   function setProgress(root, completed, target){
@@ -9,14 +12,16 @@
     var safeCompleted = Math.max(0, Number(completed) || 0);
     var safeTarget = Math.max(1, Number(target) || 100);
 
-    var pct = clamp((safeCompleted / safeTarget) * 100, 0, 100);
+    var displayedCompleted = safeCompleted + (Number(EXTRA_COMPLETED) || 0);
 
+    // Progress fill and aria attributes
+    var pct = clamp((displayedCompleted / safeTarget) * 100, 0, 100);
     if(fill) fill.style.width = pct.toFixed(2) + '%';
-    if(text) text.textContent = safeCompleted + ' / ' + safeTarget;
+    if(text) text.textContent = displayedCompleted + ' / ' + safeTarget;
 
     root.setAttribute('aria-valuemin', '0');
     root.setAttribute('aria-valuemax', String(safeTarget));
-    root.setAttribute('aria-valuenow', String(safeCompleted));
+    root.setAttribute('aria-valuenow', String(displayedCompleted));
   }
 
   async function getCompletedFromProjectsPage(){
@@ -28,7 +33,6 @@
 
     var doc = new DOMParser().parseFromString(html, 'text/html');
 
-    // Assumption: each completed writeup/CTF is represented by a card in the main cards container.
     var cardsContainer = doc.querySelector('article.cards');
     if(!cardsContainer) return 0;
 
@@ -42,7 +46,7 @@
     var target = progress.getAttribute('data-target') || '100';
 
     // Default state (in case fetch is blocked, e.g. file://)
-    setProgress(progress, 5, target);
+    setProgress(progress, 12, target);
 
     getCompletedFromProjectsPage()
       .then(function(count){ setProgress(progress, count, target); })
